@@ -1,0 +1,67 @@
+name: MMIC CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: Install frontend dependencies
+        run: npm install
+      - name: Build Expo App
+        run: npx expo prebuild
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+      - name: Install Composer dependencies
+        run: composer install
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Frontend Tests
+        run: npm test
+      - name: Run Backend Tests
+        run: php artisan test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+
+      # SSH Deploy Backend
+      - name: Deploy Backend via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host:
+          username: deployuser
+          key: 
+          port: 22
+          script: |
+            cd /var/www/mmic
+            git pull origin main
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+      # Deploy Frontend Expo
+      - name: Deploy Frontend Expo
+        env:
+          EXPO_TOKEN: 
+        run: |
+          npx eas build --platform all --non-interactive
+          npx eas submit --platform all --non-interactive

@@ -1,0 +1,43 @@
+name: Expo CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  expo-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Expo CLI
+        uses: expo/expo-github-action@v7
+        with:
+          expo-version: latest
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Run tests
+        run: npm test --if-present
+
+      - name: Build Expo Web (optional)
+        run: npx expo export --platform web
+
+      - name: Upload web artifact (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: expo-web-build
+          path: dist

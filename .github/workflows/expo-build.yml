@@ -10,33 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repo
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Setup Node 22 (sesuai laptop kamu)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm   # ✅ WAJIB: npm / yarn / pnpm
+          cache: none   # ✅ tidak wajib lockfile
 
-      # 3. Install dependencies
-      - name: Install dependencies
+      - name: Install deps
         run: npm install
 
-      # 4. Setup Expo CLI
       - name: Setup Expo
         uses: expo/expo-github-action@v8
         with:
           expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-          cache: npm   # ✅ JANGAN none
 
-      # 5. Build Android
       - name: Build Android
         run: npx expo build:android --non-interactive
-
-      # 6. Build iOS
-      - name: Build iOS
-        run: npx expo build:ios --non-interactive

@@ -2,48 +2,41 @@ name: Expo Build CI
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+    branches:
+      - main
 
 jobs:
-  expo-ci:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # 1. Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # 2. Setup Node 22 (sesuai laptop kamu)
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'none'   # FIX AGAR TIDAK ERROR KARENA TIDAK ADA LOCK FILE
+          node-version: 22
+          cache: npm   # ✅ WAJIB: npm / yarn / pnpm
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm install
 
-      - name: Install Expo CLI
-        run: npm install -g expo-cli
-
-      - name: Run Tests
-        run: npm test || echo "No tests found"
-
-      - name: Build Expo project (Web)
-        run: npm run build || echo "Build step skipped"
-
-      - name: Publish Preview (optional)
-        if: github.event_name == 'pull_request'
-        uses: expo/expo-github-action@v7
+      # 4. Setup Expo CLI
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
         with:
-          expo-command: publish --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          cache: npm   # ✅ JANGAN none
 
-      - name: EAS Build (optional)
-        if: github.ref == 'refs/heads/main'
-        uses: expo/expo-github-action@v7
-        with:
-          expo-command: eas build --platform android --profile preview --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      # 5. Build Android
+      - name: Build Android
+        run: npx expo build:android --non-interactive
+
+      # 6. Build iOS
+      - name: Build iOS
+        run: npx expo build:ios --non-interactive

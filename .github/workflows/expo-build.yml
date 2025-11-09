@@ -10,24 +10,29 @@ jobs:
   expo-ci:
     runs-on: ubuntu-latest
 
+    # Semua run perintah npm dijalankan di folder frontend
     defaults:
       run:
-        working-directory: frontend    # ✅ semua perintah npm berjalan di folder ini
+        working-directory: frontend
 
     steps:
+      # 1. Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Setup Node.js + cache npm
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json   # ✅ arahkan ke folder frontend
+          cache-dependency-path: frontend/package-lock.json
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm ci
 
+      # 4. Cache Expo / Metro bundler
       - name: Cache Metro/Expo cache
         uses: actions/cache@v4
         with:
@@ -37,9 +42,51 @@ jobs:
             frontend/node_modules/.cache
           key: ${{ runner.os }}-expo-cache-${{ hashFiles('frontend/package-lock.json') }}
 
+      # 5. Run unit tests dummy (tidak error jika belum ada test)
       - name: Run unit tests
-        run: npm test -- --ci
+        run: |
+          if npm run | grep -q "test"; then
+            npm test -- --ci
+          else
+            echo "No test script, skipping..."
+          fi
 
-      - name: Build web (optional)
+      # 6. Lint (optional)
+      - name: Lint code
+        run: |
+          if npm run | grep -q "lint"; then
+            npm run lint
+          else
+            echo "No lint script, skipping..."
+          fi
+
+      # 7. Build web (hanya di main branch)
+      - name: Build web
         if: github.ref == 'refs/heads/main'
         run: npm run build
+
+      # 8. Upload web build artifact (opsional, bisa diunduh)
+      - name: Upload web build artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: expo-web-build
+          path: web-build/  # sesuaikan dengan folder output build kamu
+
+      # 9. PR preview EAS update (opsional)
+      - name: PR Preview via EAS update
+        if: github.event_name == 'pull_request'
+        uses: expo/expo-github-action@v7
+        with:
+          expo-command: eas update --branch pr-${{ github.event.number }} --message "PR #${{ github.event.number }} preview"
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      # 10. EAS Build release (opsional, hanya di main branch)
+      - name: EAS Build (Release)
+        if: github.ref == 'refs/heads/main'
+        uses: expo/expo-github-action@v7
+        with:
+          expo-command: eas build --platform all --non-interactive
+        env:
+          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}

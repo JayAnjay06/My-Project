@@ -26,9 +26,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup PHP
+      # 2️⃣ Setup PHP v2 (shivammathur/setup-php)
       - name: Setup PHP
-        uses: shivammathur/setup-php@v4
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
           extensions: mbstring, bcmath, xml, zip, pdo_mysql
@@ -48,7 +48,7 @@ jobs:
         run: composer install --no-progress --prefer-dist --optimize-autoloader
         working-directory: backend
 
-      # 5️⃣ Copy .env.testing
+      # 5️⃣ Setup .env
       - name: Setup .env
         run: |
           cp .env.example .env

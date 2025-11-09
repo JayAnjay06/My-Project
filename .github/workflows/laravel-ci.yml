@@ -26,11 +26,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup PHP v2 (shivammathur/setup-php)
+      # 2️⃣ Setup PHP 8.2.12
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: '8.2.12'
           extensions: mbstring, bcmath, xml, zip, pdo_mysql
           coverage: none
 
@@ -43,7 +43,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
-      # 4️⃣ Install dependencies
+      # 4️⃣ Install Composer dependencies
       - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
         working-directory: backend

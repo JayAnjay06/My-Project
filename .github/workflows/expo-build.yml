@@ -41,5 +41,5 @@ jobs:
         run: echo "Skipping tests (no test script defined)"
 
       - name: Build web (optional)
-        if: github.ref == 'refs/heads/main'
-        run: npm run build
+        run: echo "Skipping build (no build script defined)"
+

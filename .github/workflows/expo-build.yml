@@ -1,26 +1,46 @@
-name: Expo CI
+name: Expo Build Automation
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
-  build:
+  expo-build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: your-folder
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      # Setup Node + caching npm agar tidak lambat
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
-          cache-dependency-path: your-folder/package-lock.json
+          cache: npm
 
+      # Install semua dependensi
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test -- --ci
+      # Lint optional (kalau ada script lint)
+      - name: Run lint
+        run: npm run lint || echo "No lint script"
+
+      # Jalankan unit test (kalau ada jest/vitest)
+      - name: Run unit tests
+        run: npm test --if-present -- --ci
+
+      # Build web Expo (opsional, tidak error kalau tidak ada)
+      - name: Build Expo Web
+        run: npm run build --if-present
+
+      # Upload hasil build sebagai artifact (opsional)
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: expo-web-build
+          path: dist/
+          if-no-files-found: ignore

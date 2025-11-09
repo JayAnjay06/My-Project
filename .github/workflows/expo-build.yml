@@ -10,22 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository
+      # 1. Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node (gunakan cache none untuk menghindari lockfile mandatory)
+      # 2. Setup Node tanpa cache
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: none
 
-      # 3. Install dependencies (lockfile sudah ada di root)
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # 4. Setup Expo CLI
+      # 4. Setup Expo CLI (tidak boleh ada cache)
       - name: Setup Expo
         uses: expo/expo-github-action@v8
         with:

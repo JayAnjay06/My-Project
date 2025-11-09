@@ -13,31 +13,40 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          path: .   # ✅ pastikan di root repo
 
+      # ✅ Node.js + npm caching
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'   # ✅ caching yang benar untuk npm
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json  # ✅ arahkan ke frontend
 
+      # ✅ Install dependencies dalam folder frontend
       - name: Install dependencies
-        working-directory: .
+        working-directory: ./frontend
         run: npm install
 
-      - name: Validate project structure (Expo Doctor)
+      # ✅ Cek struktur Expo
+      - name: Expo Doctor
+        working-directory: ./frontend
         run: npx expo-doctor
 
-      - name: Run TypeScript check
+      # ✅ TypeScript check
+      - name: TypeScript Check
+        working-directory: ./frontend
         run: npx tsc --noEmit
 
+      # ✅ ESLint (jika ada)
       - name: Run ESLint
+        working-directory: ./frontend
         run: npm run lint --if-present
 
-      - name: Run tests (jika ada)
+      # ✅ Testing (jika ada)
+      - name: Run Tests
+        working-directory: ./frontend
         run: npm test --if-present
 
-      - name: Build (Expo / React Native, optional)
-        run: |
-          echo "Skipping native build. Using Expo managed workflow."
+      # ✅ Build opsional (tidak build native)
+      - name: Skip native build
+        run: echo "Expo managed workflow. Native build skipped."

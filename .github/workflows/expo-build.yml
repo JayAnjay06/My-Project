@@ -9,6 +9,11 @@ on:
 jobs:
   expo-ci:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend    # ✅ semua perintah npm berjalan di folder ini
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,8 +21,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'    # sesuaikan versi node proyekmu
+          node-version: '18'
           cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json   # ✅ arahkan ke folder frontend
 
       - name: Install dependencies
         run: npm ci
@@ -27,12 +33,9 @@ jobs:
         with:
           path: |
             ~/.expo
-            .expo/cache
-            node_modules/.cache
-          key: ${{ runner.os }}-expo-cache-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Lint
-        run: npm run lint || true
+            frontend/.expo
+            frontend/node_modules/.cache
+          key: ${{ runner.os }}-expo-cache-${{ hashFiles('frontend/package-lock.json') }}
 
       - name: Run unit tests
         run: npm test -- --ci
@@ -40,19 +43,3 @@ jobs:
       - name: Build web (optional)
         if: github.ref == 'refs/heads/main'
         run: npm run build
-
-      - name: Publish preview (PR preview) to EAS (optional)
-        if: github.event_name == 'pull_request'
-        uses: expo/expo-github-action@v7
-        with:
-          expo-command: eas update --branch pr-${{ github.event.number }} --message "PR #${{ github.event.number }} preview"
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: EAS Build (release) (optional)
-        if: github.ref == 'refs/heads/main'
-        uses: expo/expo-github-action@v7
-        with:
-          expo-command: eas build --platform all --non-interactive
-        env:
-          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}

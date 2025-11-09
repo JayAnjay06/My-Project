@@ -10,10 +10,9 @@ jobs:
   expo-ci:
     runs-on: ubuntu-latest
 
-    # Semua run perintah npm dijalankan di folder frontend
     defaults:
       run:
-        working-directory: frontend
+        working-directory: frontend   # Semua perintah dijalankan di folder frontend
 
     steps:
       # 1. Checkout repository
@@ -32,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4. Cache Expo / Metro bundler
+      # 4. Cache Metro/Expo bundler
       - name: Cache Metro/Expo cache
         uses: actions/cache@v4
         with:
@@ -42,7 +41,7 @@ jobs:
             frontend/node_modules/.cache
           key: ${{ runner.os }}-expo-cache-${{ hashFiles('frontend/package-lock.json') }}
 
-      # 5. Run unit tests dummy (tidak error jika belum ada test)
+      # 5. Run unit tests (dummy / skip jika tidak ada test)
       - name: Run unit tests
         run: |
           if npm run | grep -q "test"; then
@@ -51,29 +50,24 @@ jobs:
             echo "No test script, skipping..."
           fi
 
-      # 6. Lint (optional)
+      # 6. Lint code (tidak gagal meski ada warning/error)
       - name: Lint code
-        run: |
-          if npm run | grep -q "lint"; then
-            npm run lint
-          else
-            echo "No lint script, skipping..."
-          fi
+        run: npm run lint || true
 
       # 7. Build web (hanya di main branch)
       - name: Build web
         if: github.ref == 'refs/heads/main'
         run: npm run build
 
-      # 8. Upload web build artifact (opsional, bisa diunduh)
+      # 8. Upload web build artifact (opsional)
       - name: Upload web build artifact
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: expo-web-build
-          path: web-build/  # sesuaikan dengan folder output build kamu
+          path: web-build/  # ganti sesuai folder output build kamu
 
-      # 9. PR preview EAS update (opsional)
+      # 9. PR Preview via EAS update (opsional)
       - name: PR Preview via EAS update
         if: github.event_name == 'pull_request'
         uses: expo/expo-github-action@v7

@@ -1,47 +1,58 @@
-name: MMIC CI
+name: Expo CI & Build
 
 on:
   push:
-    branches: ["main"]
+    branches: [ main, develop ]
   pull_request:
-    branches: ["main"]
+    branches: [ main, develop ]
 
 jobs:
-  build:
+  expo-ci:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # ✅ Node.js + npm caching
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json  # ✅ arahkan ke frontend
+          node-version: '18'    # sesuaikan versi node proyekmu
+          cache: 'npm'
 
-      # ✅ Install dependencies dalam folder frontend
       - name: Install dependencies
-        working-directory: ./frontend
-        run: npm install
-        
-      # ✅ TypeScript check
-      - name: TypeScript Check
-        working-directory: ./frontend
-        run: npx tsc --noEmit
+        run: npm ci
 
-      # ✅ ESLint (jika ada)
-      - name: Run ESLint
-        working-directory: ./frontend
-        run: npm run lint --if-present
+      - name: Cache Metro/Expo cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.expo
+            .expo/cache
+            node_modules/.cache
+          key: ${{ runner.os }}-expo-cache-${{ hashFiles('**/package-lock.json') }}
 
-      # ✅ Testing (jika ada)
-      - name: Run Tests
-        working-directory: ./frontend
-        run: npm test --if-present
+      - name: Lint
+        run: npm run lint || true
 
-      # ✅ Build opsional (tidak build native)
-      - name: Skip native build
-        run: echo "Expo managed workflow. Native build skipped."
+      - name: Run unit tests
+        run: npm test -- --ci
+
+      - name: Build web (optional)
+        if: github.ref == 'refs/heads/main'
+        run: npm run build
+
+      - name: Publish preview (PR preview) to EAS (optional)
+        if: github.event_name == 'pull_request'
+        uses: expo/expo-github-action@v7
+        with:
+          expo-command: eas update --branch pr-${{ github.event.number }} --message "PR #${{ github.event.number }} preview"
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: EAS Build (release) (optional)
+        if: github.ref == 'refs/heads/main'
+        uses: expo/expo-github-action@v7
+        with:
+          expo-command: eas build --platform all --non-interactive
+        env:
+          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}

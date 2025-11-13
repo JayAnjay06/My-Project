@@ -17,7 +17,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
-
 use App\Http\Controllers\Api\LokasiController;
 
 Route::get('/lokasi', [LokasiController::class, 'index']);

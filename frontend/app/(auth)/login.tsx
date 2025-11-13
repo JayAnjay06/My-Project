@@ -1,78 +1,29 @@
-import { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Image
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, 
+        KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { API_URL } from '@/components/api/api';
 import { Ionicons } from '@expo/vector-icons';
+import { useLogin } from '@/components/hooks/useLogin';
 
 export default function Login() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [secure, setSecure] = useState(true);
-  const [loading, setLoading] = useState(false);
-
-  const handleToggleSecure = () => setSecure(prev => !prev);
-
-  const handleLogin = async () => {
-    if (!username || !password) {
-      alert('Username dan password wajib diisi!');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || 'Cek username/password Anda');
-      } else {
-        await AsyncStorage.setItem('token', data.token);
-        await AsyncStorage.setItem('role', data.user.role);
-
-        if (data.user.role === 'peneliti') {
-          router.replace('/(peneliti)');
-        } else if (data.user.role === 'pemerintah') {
-          router.replace('/(pemerintah)');
-        } else {
-          alert('Role tidak dikenali');
-        }
-      }
-    } catch (error) {
-      alert('Tidak bisa terhubung ke server');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    username,
+    password,
+    secure,
+    loading,
+    setUsername,
+    setPassword,
+    handleToggleSecure,
+    handleLogin,
+  } = useLogin();
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Image
             source={require('../../assets/images/icon.png')}
@@ -91,8 +42,7 @@ export default function Login() {
               autoCapitalize="none"
               style={styles.input}
               placeholder="Masukkan username"
-              placeholderTextColor="#999"
-            />
+              placeholderTextColor="#999"/>
           </View>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
@@ -103,17 +53,14 @@ export default function Login() {
                 secureTextEntry={secure}
                 style={styles.passwordInput}
                 placeholder="Masukkan password"
-                placeholderTextColor="#999"
-              />
+                placeholderTextColor="#999"/>
               <TouchableOpacity
                 onPress={handleToggleSecure}
-                style={styles.eyeButton}
-              >
+                style={styles.eyeButton}>
                 <Ionicons
                   name={secure ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
-                  color="#666"
-                />
+                  color="#666"/>
               </TouchableOpacity>
             </View>
           </View>
@@ -123,8 +70,7 @@ export default function Login() {
               (loading || !username || !password) && styles.loginButtonDisabled
             ]}
             onPress={handleLogin}
-            disabled={loading || !username || !password}
-          >
+            disabled={loading || !username || !password}>
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
@@ -133,8 +79,7 @@ export default function Login() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
-          >
+            onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={16} color="#2E8B57" />
             <Text style={styles.backButtonText}>Kembali</Text>
           </TouchableOpacity>
@@ -241,19 +186,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
-})
-
-// import { Button, StyleSheet, Text, View } from 'react-native'
-// import React from 'react'
-// import { router } from 'expo-router'
-
-// export default function login() {
-//   return (
-//     <View>
-//       <Button title="peneliti" onPress={() => router.push("/(peneliti)")} />
-//       <Button title="pemerintah" onPress={() => router.push("/(pemerintah)")} />
-//     </View>
-//   )
-// }
-
-// const styles = StyleSheet.create({})
+});

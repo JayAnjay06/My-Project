@@ -74,35 +74,35 @@ export default function Peneliti() {
 
   const menuItems = [
     {
-      title: 'Lokasi',
+      title: 'Daftar Lokasi',
       icon: 'location-outline',
       color: '#2196F3',
       route: '/(peneliti)/lokasi',
       description: 'Kelola data lokasi penelitian'
     },
     {
-      title: 'Jenis Tanaman',
+      title: 'Daftar Jenis Mangrove',
       icon: 'leaf-outline',
       color: '#4CAF50',
       route: '/(peneliti)/jenis',
       description: 'Data jenis tanaman'
     },
     {
-      title: 'Laporan',
+      title: 'Laporan Masyarakat',
       icon: 'document-text-outline',
       color: '#FF9800',
       route: '/(peneliti)/laporan',
       description: 'Buat dan lihat laporan'
     },
     {
-      title: 'Analisis',
+      title: 'Analisis AI',
       icon: 'analytics-outline',
       color: '#9C27B0',
       route: '/(peneliti)/analisis',
       description: 'Analisis data penelitian'
     },
     {
-      title: 'Forum',
+      title: 'Forum Edukatif',
       icon: 'chatbubbles-outline',
       color: '#795548',
       route: '/(peneliti)/forum',

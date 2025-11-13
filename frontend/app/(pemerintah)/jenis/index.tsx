@@ -59,7 +59,7 @@ export default function JenisMonitoring() {
   const renderStatsCard = () => (
     <View style={styles.statsContainer}>
       <Text style={styles.statsTitle}>Katalog Jenis Mangrove</Text>
-      
+
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
           <View style={[styles.statIcon, { backgroundColor: '#2196F3' }]}>
@@ -105,18 +105,18 @@ export default function JenisMonitoring() {
             <Text style={styles.placeholderText}>Gambar Tidak Tersedia</Text>
           </View>
         )}
-        
         <View style={styles.textContainer}>
           <View style={styles.headerRow}>
-            <Text style={styles.namaLokal} numberOfLines={1}>
-              {item.nama_lokal}
-            </Text>
+            <View style={styles.textContent}>
+              <Text style={styles.namaLokal} numberOfLines={1}>
+                {item.nama_lokal}
+              </Text>
+              <Text style={styles.namaIlmiah} numberOfLines={1}>
+                {item.nama_ilmiah}
+              </Text>
+            </View>
           </View>
-          
-          <Text style={styles.namaIlmiah} numberOfLines={1}>
-            {item.nama_ilmiah}
-          </Text>
-          
+
           {item.deskripsi && (
             <Text style={styles.deskripsi} numberOfLines={3}>
               {truncateText(item.deskripsi, 120)}
@@ -264,81 +264,80 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   card: {
-    backgroundColor: "white",
+    backgroundColor: '#fff',
     borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowRadius: 4,
     elevation: 3,
   },
   cardContent: {
-    flexDirection: "row",
-    padding: 12,
+    flexDirection: 'column',
   },
   image: {
-    width: 80,
-    height: 80,
+    width: 300,
+    height: 200,
     borderRadius: 8,
-    marginRight: 12,
+    marginBottom: 12,
   },
   placeholderImage: {
-    backgroundColor: "#f0f0f0",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderStyle: "dashed",
+    borderColor: '#e9ecef',
+    borderStyle: 'dashed',
   },
   placeholderText: {
-    fontSize: 10,
-    color: "#999",
-    marginTop: 4,
-    textAlign: "center",
+    fontSize: 12,
+    color: '#6c757d',
+    marginTop: 8,
+    textAlign: 'center',
   },
   textContainer: {
     flex: 1,
-    justifyContent: "space-between",
   },
   headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  textContent: {
+    flex: 1,
+    marginRight: 12,
   },
   namaLokal: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#2196F3",
-    flex: 1,
-    marginRight: 8,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    marginBottom: 2,
   },
   namaIlmiah: {
     fontSize: 14,
-    fontStyle: "italic",
-    color: "#4CAF50",
-    marginBottom: 6,
-  },
-  deskripsi: {
-    fontSize: 13,
-    color: "#666",
-    lineHeight: 18,
+    fontStyle: 'italic',
+    color: '#4CAF50',
     marginBottom: 8,
   },
+  deskripsi: {
+    fontSize: 14,
+    color: '#495057',
+    lineHeight: 20,
+    marginBottom: 12,
+  },
   footer: {
-    marginTop: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   infoText: {
-    fontSize: 11,
-    color: "#666",
+    fontSize: 12,
+    color: '#6c757d',
     marginLeft: 4,
   },
   separator: {

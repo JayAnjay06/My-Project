@@ -26,15 +26,12 @@ export default function Pemerintah() {
   const fetchData = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      
-      // Fetch profile
       const profileRes = await fetch(`${API_URL}/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const profileData = await profileRes.json();
       setProfile(profileData);
 
-      // Fetch data untuk statistik dari endpoint yang sudah ada
       const [lokasiRes, laporanRes, forumRes] = await Promise.all([
         fetch(`${API_URL}/lokasi`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -51,7 +48,6 @@ export default function Pemerintah() {
       const laporanData = await laporanRes.json();
       const forumData = await forumRes.json();
 
-      // Hitung statistik manual dari data yang didapat
       const lokasiList = lokasiData.data || lokasiData || [];
       const laporanList = laporanData.data || laporanData || [];
       const forumList = forumData.data || forumData || [];
@@ -61,7 +57,6 @@ export default function Pemerintah() {
         totalLaporan: laporanList.length,
         laporanPending: laporanList.filter((l: any) => l.status === 'pending').length,
         forumAktif: forumList.filter((f: any) => {
-          // Anggap forum aktif jika ada post dalam 7 hari terakhir
           const lastPost = new Date(f.updated_at || f.created_at);
           const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
           return lastPost > sevenDaysAgo;
@@ -86,14 +81,14 @@ export default function Pemerintah() {
 
   const menuItems = [
     {
-      title: 'Lokasi',
+      title: 'Daftar Lokasi',
       icon: 'map-outline',
       color: '#2196F3',
       route: '/(pemerintah)/lokasi',
       description: 'Kelola data lokasi penanaman'
     },
     {
-      title: 'Jenis Tanaman',
+      title: 'Daftar Jenis Mangrove',
       icon: 'leaf-outline',
       color: '#4CAF50',
       route: '/(pemerintah)/jenis',
@@ -107,7 +102,7 @@ export default function Pemerintah() {
       description: 'Review laporan masyarakat'
     },
     {
-      title: 'Forum Diskusi',
+      title: 'Forum Edukatif',
       icon: 'chatbubbles-outline',
       color: '#9C27B0',
       route: '/(pemerintah)/forum',
@@ -121,7 +116,7 @@ export default function Pemerintah() {
       description: 'Daftarkan user baru'
     },
     {
-      title: 'Analisis Data',
+      title: 'Analisis AI',
       icon: 'analytics-outline',
       color: '#607D8B',
       route: '/(pemerintah)/analisis',

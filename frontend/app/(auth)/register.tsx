@@ -1,84 +1,43 @@
-import { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, 
+        KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { API_URL } from '@/components/api/api';
 import { Ionicons } from '@expo/vector-icons';
+import { useRegister } from '@/components/hooks/useRegister';
 
 export default function Register() {
   const router = useRouter();
+  const {
+    username,
+    namaLengkap,
+    email,
+    password,
+    secure,
+    role,
+    loading,
+    setUsername,
+    setNamaLengkap,
+    setEmail,
+    setPassword,
+    setRole,
+    handleToggleSecure,
+    handleRegister,
+    validateForm,
+  } = useRegister();
 
-  const [username, setUsername] = useState('');
-  const [namaLengkap, setNamaLengkap] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [secure, setSecure] = useState(true);
-  const [role, setRole] = useState<'peneliti' | 'pemerintah'>('peneliti');
-  const [loading, setLoading] = useState(false);
-
-  const handleRegister = async () => {
-    if (!username || !namaLengkap || !email || !password) {
-      Alert.alert('Error', 'Semua field wajib diisi!');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-          nama_lengkap: namaLengkap,
-          email,
-          role,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        Alert.alert('Register gagal', data.message || 'Coba lagi');
-      } else {
-        Alert.alert('Sukses', 'Akun berhasil dibuat, silakan login');
-        router.replace('/(pemerintah)');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Tidak bisa terhubung ke server');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggleSecure = () => setSecure(prev => !prev);
+  const isFormValid = validateForm();
+  const isButtonDisabled = loading || !isFormValid;
 
   return (
     <KeyboardAvoidingView 
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView 
         contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => router.back()}
-          >
+            onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#2E8B57" />
           </TouchableOpacity>
           <View style={styles.logo}>
@@ -90,9 +49,7 @@ export default function Register() {
           </Text>
         </View>
 
-        {/* Form */}
         <View style={styles.form}>
-          {/* Nama Lengkap */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Nama Lengkap</Text>
             <TextInput
@@ -104,7 +61,6 @@ export default function Register() {
             />
           </View>
 
-          {/* Username */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Username</Text>
             <TextInput
@@ -113,11 +69,9 @@ export default function Register() {
               autoCapitalize="none"
               style={styles.input}
               placeholder="Masukkan username"
-              placeholderTextColor="#999"
-            />
+              placeholderTextColor="#999"/>
           </View>
 
-          {/* Email */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -127,11 +81,9 @@ export default function Register() {
               autoCapitalize="none"
               style={styles.input}
               placeholder="Masukkan email"
-              placeholderTextColor="#999"
-            />
+              placeholderTextColor="#999"/>
           </View>
 
-          {/* Password */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
             <View style={styles.passwordContainer}>
@@ -140,13 +92,11 @@ export default function Register() {
                 onChangeText={setPassword}
                 secureTextEntry={secure}
                 style={styles.passwordInput}
-                placeholder="Masukkan password"
-                placeholderTextColor="#999"
-              />
+                placeholder="Masukkan password (min. 6 karakter)"
+                placeholderTextColor="#999"/>
               <TouchableOpacity
                 onPress={handleToggleSecure}
-                style={styles.eyeButton}
-              >
+                style={styles.eyeButton}>
                 <Ionicons 
                   name={secure ? 'eye-off-outline' : 'eye-outline'} 
                   size={20} 
@@ -156,7 +106,6 @@ export default function Register() {
             </View>
           </View>
 
-          {/* Role Selection */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Peran</Text>
             <View style={styles.roleContainer}>
@@ -165,8 +114,7 @@ export default function Register() {
                   styles.roleButton,
                   role === 'peneliti' && styles.roleButtonActive
                 ]}
-                onPress={() => setRole('peneliti')}
-              >
+                onPress={() => setRole('peneliti')}>
                 <Ionicons 
                   name="search" 
                   size={20} 
@@ -185,13 +133,11 @@ export default function Register() {
                   styles.roleButton,
                   role === 'pemerintah' && styles.roleButtonActive
                 ]}
-                onPress={() => setRole('pemerintah')}
-              >
+                onPress={() => setRole('pemerintah')}>
                 <Ionicons 
                   name="business" 
                   size={20} 
-                  color={role === 'pemerintah' ? '#FFFFFF' : '#2E8B57'} 
-                />
+                  color={role === 'pemerintah' ? '#FFFFFF' : '#2E8B57'} />
                 <Text style={[
                   styles.roleButtonText,
                   role === 'pemerintah' && styles.roleButtonTextActive
@@ -202,21 +148,18 @@ export default function Register() {
             </View>
           </View>
 
-          {/* Register Button */}
           <TouchableOpacity
             style={[
               styles.registerButton,
-              (loading || !username || !namaLengkap || !email || !password) && styles.registerButtonDisabled
+              isButtonDisabled && styles.registerButtonDisabled
             ]}
             onPress={handleRegister}
-            disabled={loading || !username || !namaLengkap || !email || !password}
-          >
+            disabled={isButtonDisabled}>
             <Text style={styles.registerButtonText}>
               {loading ? 'Mendaftarkan...' : 'Daftar'}
             </Text>
           </TouchableOpacity>
 
-          {/* Login Link */}
           <View style={styles.loginContainer}>
             <Text style={styles.loginText}>Sudah punya akun? </Text>
             <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
@@ -229,7 +172,7 @@ export default function Register() {
   );
 }
 
-const styles = StyleSheet.create({  
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -365,4 +308,4 @@ const styles = StyleSheet.create({
     color: '#2E8B57',
     fontWeight: '600',
   },
-})
+});

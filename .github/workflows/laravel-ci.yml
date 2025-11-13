@@ -1,44 +1,74 @@
-name: Laravel Build Automation
+name: Laravel CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main, develop ]
 
 jobs:
-  build:
+  laravel-tests:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s --health-timeout=5s --health-retries=3
+        ports:
+          - 3306:3306
 
     steps:
-      # 1. Checkout repository
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      # 1️⃣ Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # 2. Setup PHP
+      # 2️⃣ Setup PHP 8.2.12
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
-          extensions: mbstring, pdo, pdo_mysql
+          php-version: '8.2.12'
+          extensions: mbstring, bcmath, xml, zip, pdo_mysql
           coverage: none
 
-      # 3. Install Composer
-      - name: Install Composer Dependencies
+      # 3️⃣ Cache Composer dependencies
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      # 4️⃣ Install Composer dependencies
+      - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
+        working-directory: backend
 
-      # 4. Copy .env example
-      - name: Copy .env
-        run: cp .env.example .env
+      # 5️⃣ Setup .env
+      - name: Setup .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan config:clear
+        working-directory: backend
 
-      # 5. Generate App Key
-      - name: Generate APP_KEY
-        run: php artisan key:generate
+      # 6️⃣ Run migrations
+      - name: Run database migrations
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testing
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: php artisan migrate --force
+        working-directory: backend
 
-      # 6. Run PHP Unit Tests
-      - name: Run Tests
-        run: php artisan test --without-tty
-
-      # 7. DONE
-      - name: Build Completed
-        run: echo "✅ Build automation success!"
+      # 7️⃣ Run PHPUnit tests
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit --testdox
+        working-directory: backend

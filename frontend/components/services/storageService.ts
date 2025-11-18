@@ -35,3 +35,41 @@ export class StorageService {
     ]);
   }
 }
+
+export class StorageService1 {
+  static async getItem(key: string): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(key);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  static async setItem(key: string, value: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem(key, value);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async removeItem(key: string): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(key);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getGuestName(): Promise<string | null> {
+    return this.getItem("guestName");
+  }
+
+  static async setGuestName(name: string): Promise<void> {
+    await this.setItem("guestName", name.trim());
+  }
+
+  static async getToken(): Promise<string | null> {
+    return this.getItem("token");
+  }
+}

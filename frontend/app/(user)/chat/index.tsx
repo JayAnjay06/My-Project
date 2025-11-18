@@ -1,110 +1,50 @@
-import { API_URL } from "@/components/api/api";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import { 
   View, 
   Text, 
   TextInput, 
   TouchableOpacity, 
-  ActivityIndicator, 
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet 
+  StyleSheet,
+  Alert 
 } from "react-native";
+import { useChat } from '@/components/hooks/useChat';
+import { MessageBubble } from '@/components/role/user/chat/MessageBubble';
+import { TypingIndicator } from '@/components/role/user/chat/TypingIndicator';
+import { ChatEmptyState } from '@/components/role/user/chat/ChatEmptyState';
 
 export default function ChatAiScreen() {
-  const [pertanyaan, setPertanyaan] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const {
+    pertanyaan,
+    messages,
+    loading,
+    error,
+    setPertanyaan,
+    handleKirim,
+    validateQuestion,
+    formatTime,
+    clearError,
+  } = useChat();
+
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Definisikan tipe untuk messages
-  type Message = {
-    id: number;
-    text: string;
-    isUser: boolean;
-    timestamp: Date;
-  };
-
-  // Auto scroll ke bawah ketika ada pesan baru
   useEffect(() => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: true });
     }
   }, [messages]);
 
-  const handleKirim = async () => {
-    if (!pertanyaan.trim()) {
-      setError("Pertanyaan tidak boleh kosong!");
-      return;
+  useEffect(() => {
+    if (error) {
+      Alert.alert("Error", error, [
+        { text: "OK", onPress: clearError }
+      ]);
     }
+  }, [error, clearError]);
 
-    setError("");
-    setLoading(true);
-
-    // Tambahkan pesan user ke chat
-    const userMessage: Message = {
-      id: Date.now(),
-      text: pertanyaan,
-      isUser: true,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    const currentQuestion = pertanyaan;
-    setPertanyaan("");
-
-    try {
-      const response = await fetch(`${API_URL}/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          user_id: null,
-          pertanyaan: currentQuestion,
-        }),
-      });
-
-      const result = await response.json();
-
-      // Tambahkan pesan AI ke chat
-      const aiMessage: Message = {
-        id: Date.now() + 1,
-        text: response.ok && result.status === "success" 
-          ? result.data.jawaban 
-          : result.data?.jawaban || "Maaf, AI tidak merespon.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (err) {
-      console.error("Fetch error:", err);
-      
-      // Tambahkan pesan error ke chat
-      const errorMessage: Message = {
-        id: Date.now() + 1,
-        text: "Maaf, terjadi kesalahan. Pastikan koneksi internet Anda stabil dan backend berjalan.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-      setError("Gagal menghubungi server.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('id-ID', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
+  const isQuestionValid = validateQuestion(pertanyaan);
 
   return (
     <KeyboardAvoidingView 
@@ -127,72 +67,22 @@ export default function ChatAiScreen() {
         showsVerticalScrollIndicator={false}
       >
         {messages.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateTitle}>
-              Selamat Datang! 👋
-            </Text>
-            <Text style={styles.emptyStateText}>
-              Saya adalah asisten AI untuk informasi mangrove. 
-              Silakan tanyakan apa saja tentang ekosistem mangrove!
-            </Text>
-            <View style={styles.suggestionContainer}>
-              <Text style={styles.suggestionTitle}>Contoh pertanyaan:</Text>
-              <Text style={styles.suggestion}>• Apa manfaat ekosistem mangrove?</Text>
-              <Text style={styles.suggestion}>• Bagaimana cara menanam mangrove?</Text>
-              <Text style={styles.suggestion}>• Jenis-jenis mangrove apa saja?</Text>
-            </View>
-          </View>
+          <ChatEmptyState />
         ) : (
           messages.map((message) => (
-            <View
+            <MessageBubble
               key={message.id}
-              style={[
-                styles.messageBubble,
-                message.isUser ? styles.userBubble : styles.aiBubble,
-              ]}
-            >
-              <View style={styles.messageHeader}>
-                <Text style={[
-                  styles.senderName,
-                  message.isUser ? styles.userName : styles.aiName
-                ]}>
-                  {message.isUser ? "Anda" : "AI Mangrove"}
-                </Text>
-                <Text style={styles.timestamp}>
-                  {formatTime(message.timestamp)}
-                </Text>
-              </View>
-              <Text style={[
-                styles.messageText,
-                message.isUser ? styles.userMessageText : styles.aiMessageText
-              ]}>
-                {message.text}
-              </Text>
-            </View>
+              message={message}
+              formatTime={formatTime}
+            />
           ))
         )}
 
-        {loading && (
-          <View style={[styles.messageBubble, styles.aiBubble]}>
-            <View style={styles.messageHeader}>
-              <Text style={[styles.senderName, styles.aiName]}>
-                AI Mangrove
-              </Text>
-            </View>
-            <View style={styles.typingIndicator}>
-              <ActivityIndicator size="small" color="#228B22" />
-              <Text style={styles.typingText}>AI sedang mengetik...</Text>
-            </View>
-          </View>
-        )}
+        {loading && <TypingIndicator />}
       </ScrollView>
 
       {/* Input Area */}
       <View style={styles.inputContainer}>
-        {error ? (
-          <Text style={styles.errorText}>{error}</Text>
-        ) : null}
-        
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.textInput}
@@ -201,14 +91,15 @@ export default function ChatAiScreen() {
             onChangeText={setPertanyaan}
             multiline
             maxLength={500}
+            placeholderTextColor="#999"
           />
           <TouchableOpacity
             onPress={handleKirim}
             style={[
               styles.sendButton,
-              (!pertanyaan.trim() || loading) && styles.sendButtonDisabled
+              (!isQuestionValid || loading) && styles.sendButtonDisabled
             ]}
-            disabled={!pertanyaan.trim() || loading}
+            disabled={!isQuestionValid || loading}
           >
             <Text style={styles.sendButtonText}>
               {loading ? "⏳" : "➤"}
@@ -253,103 +144,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  suggestionContainer: {
-    backgroundColor: "#e8f5e8",
-    padding: 16,
-    borderRadius: 12,
-    width: "100%",
-  },
-  suggestionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#228B22",
-    marginBottom: 8,
-  },
-  suggestion: {
-    fontSize: 13,
-    color: "#555",
-    marginBottom: 4,
-  },
-  messageBubble: {
-    marginVertical: 6,
-    padding: 12,
-    borderRadius: 16,
-    maxWidth: "85%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  userBubble: {
-    alignSelf: "flex-end",
-    backgroundColor: "#228B22",
-    borderBottomRightRadius: 4,
-  },
-  aiBubble: {
-    alignSelf: "flex-start",
-    backgroundColor: "white",
-    borderBottomLeftRadius: 4,
-  },
-  messageHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  senderName: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  userName: {
-    color: "rgba(255,255,255,0.8)",
-  },
-  aiName: {
-    color: "#228B22",
-  },
-  timestamp: {
-    fontSize: 10,
-    color: "#999",
-  },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 20,
-  },
-  userMessageText: {
-    color: "white",
-  },
-  aiMessageText: {
-    color: "#333",
-  },
-  typingIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  typingText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: "#666",
-    fontStyle: "italic",
-  },
   inputContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -388,12 +182,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  errorText: {
-    color: "red",
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 8,
   },
   charCount: {
     fontSize: 12,

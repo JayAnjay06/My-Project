@@ -1,5 +1,6 @@
 import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, 
-        KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Image } from 'react-native';
+        KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Image, 
+        StatusBar} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useLogin } from '@/components/hooks/useLogin';
@@ -21,6 +22,7 @@ export default function Login() {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <StatusBar barStyle={'dark-content'}/>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}>

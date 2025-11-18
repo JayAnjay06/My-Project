@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -6,182 +6,48 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   RefreshControl,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { API_URL } from "@/components/api/api";
-
-type ForumMessage = {
-  forum_id: number;
-  user_id?: number | null;
-  guest_name?: string | null;
-  isi_pesan: string;
-  created_at: string;
-  user?: {
-    nama_lengkap?: string;
-    role?: "peneliti" | "pemerintah" | "masyarakat";
-  };
-};
+import { useForum } from '@/components/hooks/useForum';
+import { MessageItem } from '@/components/role/user/forum/MessageItem';
+import { NameSetupScreen } from '@/components/role/user/forum/NameSetupScreen';
 
 export default function ForumScreen() {
-  const [messages, setMessages] = useState<ForumMessage[]>([]);
-  const [isiPesan, setIsiPesan] = useState("");
-  const [guestName, setGuestName] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [isNameSet, setIsNameSet] = useState(false);
+  const {
+    messages,
+    isiPesan,
+    guestName,
+    loading,
+    sending,
+    refreshing,
+    isNameSet,
+    error,
+    setIsiPesan,
+    onRefresh,
+    handleSaveName,
+    handleSend,
+    getRoleInfo,
+    formatTime,
+    validateMessage,
+    validateName,
+    clearError,
+  } = useForum();
 
-  // Cek apakah user sudah punya nama
   useEffect(() => {
-    const checkName = async () => {
-      const storedName = await AsyncStorage.getItem("guestName");
-      if (storedName) {
-        setGuestName(storedName);
-        setIsNameSet(true);
-        fetchMessages();
-      } else {
-        setLoading(false);
-      }
-    };
-    checkName();
-  }, []);
-
-  // Ambil data forum dari API
-  const fetchMessages = async () => {
-    try {
-      const res = await fetch(`${API_URL}/forum`);
-      const data: ForumMessage[] = await res.json();
-      setMessages(data);
-    } catch (err) {
-      console.error("Gagal fetch forum:", err);
-      Alert.alert("Error", "Gagal memuat pesan forum");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    if (error) {
+      Alert.alert("Error", error, [
+        { text: "OK", onPress: clearError }
+      ]);
     }
-  };
+  }, [error, clearError]);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchMessages();
-  };
+  const isMessageValid = validateMessage(isiPesan);
 
-  // Simpan nama user
-  const handleSaveName = async () => {
-    if (!guestName.trim()) {
-      Alert.alert("Peringatan", "Nama tidak boleh kosong!");
-      return;
-    }
-    
-    if (guestName.trim().length < 2) {
-      Alert.alert("Peringatan", "Nama minimal 2 karakter!");
-      return;
-    }
-
-    try {
-      await AsyncStorage.setItem("guestName", guestName.trim());
-      setIsNameSet(true);
-      fetchMessages();
-    } catch (err) {
-      console.error("Gagal simpan nama:", err);
-      Alert.alert("Error", "Gagal menyimpan nama");
-    }
-  };
-
-  // Kirim pesan baru
-  const handleSend = async () => {
-    if (!isiPesan.trim()) {
-      Alert.alert("Peringatan", "Pesan tidak boleh kosong!");
-      return;
-    }
-
-    if (isiPesan.trim().length < 3) {
-      Alert.alert("Peringatan", "Pesan terlalu pendek!");
-      return;
-    }
-
-    setSending(true);
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const res = await fetch(`${API_URL}/forum`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-        body: JSON.stringify({
-          isi_pesan: isiPesan.trim(),
-          guest_name: guestName,
-        }),
-      });
-
-      if (res.ok) {
-        setIsiPesan("");
-        fetchMessages();
-      } else {
-        Alert.alert("Error", "Gagal mengirim pesan.");
-      }
-    } catch (err) {
-      console.error("Gagal kirim pesan:", err);
-      Alert.alert("Error", "Gagal mengirim pesan");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const getRoleInfo = (role?: string, name?: string) => {
-    const displayName = name ?? "Anonim";
-    switch (role) {
-      case "peneliti":
-        return { 
-          label: displayName, 
-          color: "#2196F3",
-          icon: "flask" as const,
-          roleLabel: "Peneliti"
-        };
-      case "pemerintah":
-        return { 
-          label: displayName, 
-          color: "#4CAF50",
-          icon: "business" as const,
-          roleLabel: "Pemerintah"
-        };
-      default:
-        return { 
-          label: displayName, 
-          color: "#666",
-          icon: "person" as const,
-          roleLabel: "Masyarakat"
-        };
-    }
-  };
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return "Baru saja";
-    if (diffMins < 60) return `${diffMins}m lalu`;
-    if (diffHours < 24) return `${diffHours}j lalu`;
-    if (diffDays < 7) return `${diffDays}h lalu`;
-    
-    return date.toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short'
-    });
-  };
-
-  // Jika loading
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -191,52 +57,22 @@ export default function ForumScreen() {
     );
   }
 
-  // Jika nama belum diset, tampilkan form input nama
   if (!isNameSet) {
     return (
-      <View style={styles.nameContainer}>
-        <View style={styles.nameHeader}>
-          <Ionicons name="people" size={48} color="#4CAF50" />
-          <Text style={styles.nameTitle}>Selamat Datang di Forum</Text>
-          <Text style={styles.nameSubtitle}>
-            Masukkan nama Anda untuk mulai berdiskusi
-          </Text>
-        </View>
-
-        <View style={styles.nameForm}>
-          <Text style={styles.nameLabel}>Nama Anda</Text>
-          <TextInput
-            style={styles.nameInput}
-            placeholder="Contoh: Budi Santoso"
-            value={guestName}
-            onChangeText={setGuestName}
-            maxLength={30}
-            autoFocus
-          />
-          <Text style={styles.nameHelper}>
-            Nama ini akan ditampilkan di forum dan tidak bisa diubah
-          </Text>
-
-          <TouchableOpacity 
-            style={[
-              styles.nameButton,
-              (!guestName.trim() || guestName.trim().length < 2) && styles.buttonDisabled
-            ]} 
-            onPress={handleSaveName}
-            disabled={!guestName.trim() || guestName.trim().length < 2}
-          >
-            <Text style={styles.nameButtonText}>Mulai Berdiskusi</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <NameSetupScreen
+        guestName={guestName}
+        setGuestName={(name) => {}}
+        onSaveName={handleSaveName}
+        validateName={validateName}
+      />
     );
   }
 
-  // Render forum diskusi
   return (
     <KeyboardAvoidingView 
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Forum Diskusi Mangrove</Text>
@@ -252,42 +88,21 @@ export default function ForumScreen() {
       <FlatList
         data={messages}
         keyExtractor={(item, index) =>
-          item.forum_id?.toString() ?? index.toString()
+          item.forum_id?.toString() ?? `message-${index}`
         }
-        renderItem={({ item }) => {
-          const roleInfo = getRoleInfo(
-            item.user?.role,
-            item.user?.nama_lengkap ?? item.guest_name ?? "Anonim"
-          );
-
-          const isOwnMessage = item.guest_name === guestName;
-
-          return (
-            <View style={[
-              styles.messageContainer,
-              isOwnMessage && styles.ownMessageContainer
-            ]}>
-              <View style={styles.messageHeader}>
-                <View style={styles.roleContainer}>
-                  <Ionicons name={roleInfo.icon} size={12} color={roleInfo.color} />
-                  <Text style={[styles.senderName, { color: roleInfo.color }]}>
-                    {roleInfo.label}
-                  </Text>
-                  {roleInfo.roleLabel !== "Masyarakat" && (
-                    <Text style={[styles.roleLabel, { color: roleInfo.color }]}>
-                      • {roleInfo.roleLabel}
-                    </Text>
-                  )}
-                </View>
-                <Text style={styles.timeText}>{formatTime(item.created_at)}</Text>
-              </View>
-              
-              <Text style={styles.messageText}>{item.isi_pesan}</Text>
-            </View>
-          );
-        }}
+        renderItem={({ item }) => (
+          <MessageItem
+            message={item}
+            guestName={guestName}
+            getRoleInfo={getRoleInfo}
+            formatTime={formatTime}
+          />
+        )}
         style={styles.messagesList}
-        contentContainerStyle={styles.messagesContent}
+        contentContainerStyle={[
+          styles.messagesContent,
+          messages.length === 0 && styles.emptyMessagesContent
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -306,7 +121,6 @@ export default function ForumScreen() {
             </Text>
           </View>
         }
-        inverted={false}
       />
 
       <View style={styles.inputContainer}>
@@ -319,14 +133,15 @@ export default function ForumScreen() {
             multiline
             maxLength={500}
             editable={!sending}
+            placeholderTextColor="#999"
           />
           <TouchableOpacity
             style={[
               styles.sendButton,
-              (!isiPesan.trim() || sending || isiPesan.trim().length < 3) && styles.sendButtonDisabled
+              (!isMessageValid || sending) && styles.sendButtonDisabled
             ]}
             onPress={handleSend}
-            disabled={!isiPesan.trim() || sending || isiPesan.trim().length < 3}
+            disabled={!isMessageValid || sending}
           >
             {sending ? (
               <ActivityIndicator size="small" color="white" />
@@ -344,78 +159,6 @@ export default function ForumScreen() {
 }
 
 const styles = StyleSheet.create({
-  // Name Setup Styles
-  nameContainer: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-    padding: 24,
-    justifyContent: "center",
-  },
-  nameHeader: {
-    alignItems: "center",
-    marginBottom: 48,
-  },
-  nameTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#2E7D32",
-    marginTop: 16,
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  nameSubtitle: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 22,
-  },
-  nameForm: {
-    backgroundColor: "white",
-    padding: 24,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  nameLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 8,
-  },
-  nameInput: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    backgroundColor: "#fafafa",
-    marginBottom: 8,
-  },
-  nameHelper: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 24,
-    lineHeight: 16,
-  },
-  nameButton: {
-    backgroundColor: "#4CAF50",
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  nameButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-
-  // Forum Styles
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
@@ -470,54 +213,9 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 0,
   },
-  messageContainer: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  ownMessageContainer: {
-    backgroundColor: "#f0f9f0",
-    borderLeftWidth: 4,
-    borderLeftColor: "#4CAF50",
-  },
-  messageHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  roleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  senderName: {
-    fontSize: 12,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  roleLabel: {
-    fontSize: 10,
-    fontWeight: "500",
-    marginLeft: 4,
-  },
-  timeText: {
-    fontSize: 11,
-    color: "#999",
-  },
-  messageText: {
-    fontSize: 14,
-    color: "#333",
-    lineHeight: 20,
+  emptyMessagesContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   inputContainer: {
     padding: 16,
@@ -583,8 +281,5 @@ const styles = StyleSheet.create({
     color: "#999",
     textAlign: "center",
     lineHeight: 20,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
   },
 });

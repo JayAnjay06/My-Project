@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+// app/laporan-list.tsx
+import React, { useEffect } from "react";
 import { 
   View, 
   Text, 
@@ -6,149 +7,49 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   ActivityIndicator,
-  RefreshControl 
+  RefreshControl,
+  Alert
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { API_URL } from "@/components/api/api";
-import { Laporan } from "@/components/types/laporan";
+import { useLaporan } from '@/components/hooks/useLaporan';
+import { LaporanCard } from '@/components/role/user/laporan/LaporanCard';
+import { LaporanEmptyState } from '@/components/role/user/laporan/LaporanEmptyState';
 
 export default function LaporanList() {
-  const [laporan, setLaporan] = useState<Laporan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
-
-  const fetchData = async () => {
-    try {
-      const res = await fetch(`${API_URL}/laporan`);
-      const json = await res.json();
-      setLaporan(json);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchData();
-  };
+  const {
+    laporan,
+    loading,
+    refreshing,
+    error,
+    fetchLaporan,
+    onRefresh,
+    getStatusColor,
+    getStatusIcon,
+    getStatusLabel,
+    formatDate,
+    truncateText,
+  } = useLaporan();
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchLaporan();
+  }, [fetchLaporan]);
 
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "valid":
-        return "#4CAF50";
-      case "pending":
-        return "#9C27B0";
-      case "ditolak":
-        return "#F44336";
-      default:
-        return "#9E9E9E";
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Error', error);
     }
+  }, [error]);
+
+  const handleCreateLaporan = () => {
+    router.push("/laporan/create");
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "valid":
-        return "checkmark-circle";
-      case "pending":
-        return "hourglass";
-      case "ditolak":
-        return "close-circle";
-      default:
-        return "alert-circle";
-    }
+  const handleLaporanPress = (item: any) => {
+    // Navigate to detail page if needed
+    // router.push(`/laporan/${item.laporan_id}`);
   };
-
-  const getStatusLabel = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "valid":
-        return "Ditanggapi";
-      case "pending":
-        return "Menunggu";
-      case "ditolak":
-        return "Ditolak";
-      default:
-        return status;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return "Baru saja";
-    if (diffMins < 60) return `${diffMins} menit lalu`;
-    if (diffHours < 24) return `${diffHours} jam lalu`;
-    if (diffDays < 7) return `${diffDays} hari lalu`;
-    
-    return date.toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
-  const truncateText = (text: string, maxLength: number) => {
-    if (!text) return "Tidak ada deskripsi";
-    if (text.length > maxLength) {
-      return text.substring(0, maxLength) + '...';
-    }
-    return text;
-  };
-
-  const renderItem = ({ item }: { item: Laporan }) => (
-    <View
-      style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.statusContainer}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-            <Ionicons name={getStatusIcon(item.status)} size={12} color="white" />
-            <Text style={styles.statusText}>{getStatusLabel(item.status)}</Text>
-          </View>
-        </View>
-        <Text style={styles.jenisLaporan}>{item.jenis_laporan}</Text>
-      </View>
-
-      <View style={styles.cardBody}>
-        <Text style={styles.isiLaporan} numberOfLines={2}>
-          {truncateText(item.isi_laporan, 80)}
-        </Text>
-        
-        <View style={styles.metaInfo}>
-          <View style={styles.metaItem}>
-            <Ionicons name="location" size={12} color="#666" />
-            <Text style={styles.metaText}>
-              {item.lokasi?.nama_lokasi || "Lokasi tidak tersedia"}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.cardFooter}>
-        <View style={styles.footerInfo}>
-          <Ionicons name="calendar" size={12} color="#666" />
-          <Text style={styles.dateText}>
-            {formatDate(item.tanggal_laporan)}
-          </Text>
-        </View>
-        <View style={styles.arrowContainer}>
-          <Ionicons name="chevron-forward" size={16} color="#999" />
-        </View>
-      </View>
-    </View>
-  );
 
   if (loading) {
     return (
@@ -170,7 +71,7 @@ export default function LaporanList() {
 
       <TouchableOpacity 
         style={styles.createButton}
-        onPress={() => router.push("/laporan/create")}
+        onPress={handleCreateLaporan}
       >
         <Ionicons name="add-circle" size={20} color="white" />
         <Text style={styles.createButtonText}>Buat Laporan Baru</Text>
@@ -179,7 +80,17 @@ export default function LaporanList() {
       <FlatList
         data={laporan}
         keyExtractor={(item) => item.laporan_id.toString()}
-        renderItem={renderItem}
+        renderItem={({ item }) => (
+          <LaporanCard
+            item={item}
+            onPress={() => handleLaporanPress(item)}
+            getStatusColor={getStatusColor}
+            getStatusIcon={getStatusIcon}
+            getStatusLabel={getStatusLabel}
+            formatDate={formatDate}
+            truncateText={truncateText}
+          />
+        )}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
         refreshControl={
@@ -191,19 +102,7 @@ export default function LaporanList() {
           />
         }
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="document-text-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyTitle}>Belum ada laporan</Text>
-            <Text style={styles.emptySubtitle}>
-              Mulai dengan membuat laporan pertama Anda
-            </Text>
-            <TouchableOpacity 
-              style={styles.emptyButton}
-              onPress={() => router.push("/laporan/create")}
-            >
-              <Text style={styles.emptyButtonText}>Buat Laporan Pertama</Text>
-            </TouchableOpacity>
-          </View>
+          <LaporanEmptyState onCreateLaporan={handleCreateLaporan} />
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
@@ -260,94 +159,6 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 0,
   },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  statusContainer: {
-    flex: 1,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  statusText: {
-    color: "white",
-    fontSize: 10,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  jenisLaporan: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#2E7D32",
-    textAlign: 'right',
-    flex: 1,
-    marginLeft: 8,
-  },
-  cardBody: {
-    marginBottom: 12,
-  },
-  isiLaporan: {
-    fontSize: 14,
-    color: "#333",
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  metaInfo: {
-    marginBottom: 8,
-  },
-  metaItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  metaText: {
-    fontSize: 12,
-    color: "#666",
-    marginLeft: 4,
-  },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-    paddingTop: 8,
-  },
-  footerInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  dateText: {
-    fontSize: 11,
-    color: "#666",
-    marginLeft: 4,
-  },
-  arrowContainer: {
-    padding: 4,
-  },
   separator: {
     height: 12,
   },
@@ -361,35 +172,5 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: "#666",
-  },
-  emptyState: {
-    alignItems: "center",
-    padding: 40,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#666",
-    marginTop: 16,
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: "#999",
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  emptyButton: {
-    backgroundColor: "#4CAF50",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  emptyButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });

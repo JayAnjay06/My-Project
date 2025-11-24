@@ -25,3 +25,9 @@ export interface RoleInfo {
   icon: "flask" | "business" | "person";
   roleLabel: string;
 }
+
+// pemerintah
+export interface UserProfile {
+  nama_lengkap: string;
+  role: string;
+}

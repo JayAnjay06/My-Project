@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -12,220 +12,40 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { API_URL } from "@/components/api/api";
+import { useForumPemerintah } from '@/components/hooks/useForum';
+import { ForumMessageItem } from '@/components/role/pemerintah/forum/ForumMessageItem';
 
-type ForumMessage = {
-  forum_id: number;
-  user_id?: number | null;
-  guest_name?: string | null;
-  isi_pesan: string;
-  created_at: string;
-  user?: {
-    nama_lengkap: string;
-    role?: "peneliti" | "pemerintah" | "masyarakat";
-  };
-};
-
-export default function ForumPeneliti() {
-  const [messages, setMessages] = useState<ForumMessage[]>([]);
-  const [isiPesan, setIsiPesan] = useState("");
-  const [guestName, setGuestName] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [profile, setProfile] = useState<{ nama_lengkap: string; role: string } | null>(null);
-
-  const fetchMessages = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const res = await fetch(`${API_URL}/forum`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data: ForumMessage[] = await res.json();
-      setMessages(data);
-    } catch (err) {
-      console.error("Gagal fetch forum:", err);
-      Alert.alert("Error", "Gagal memuat pesan forum");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const fetchProfile = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const res = await fetch(`${API_URL}/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setProfile(data);
-    } catch (err) {
-      console.error("Gagal fetch profile:", err);
-    }
-  };
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchMessages();
-  };
+export default function ForumPemerintah() {
+  const {
+    messages,
+    isiPesan,
+    guestName,
+    loading,
+    refreshing,
+    sending,
+    profile,
+    error,
+    setIsiPesan,
+    setGuestName,
+    onRefresh,
+    handleSend,
+    handleDelete,
+    getRoleInfo,
+    formatTime,
+    validateMessage,
+    clearError,
+  } = useForumPemerintah();
 
   useEffect(() => {
-    fetchProfile();
-    fetchMessages();
-  }, []);
-
-  const handleSend = async () => {
-    if (!isiPesan.trim()) {
-      Alert.alert("Peringatan", "Pesan tidak boleh kosong!");
-      return;
+    if (error) {
+      Alert.alert("Error", error, [
+        { text: "OK", onPress: clearError }
+      ]);
     }
+  }, [error, clearError]);
 
-    setSending(true);
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const res = await fetch(`${API_URL}/forum`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          isi_pesan: isiPesan,
-          guest_name: guestName || profile?.nama_lengkap || "Anonim",
-        }),
-      });
-
-      if (res.ok) {
-        setIsiPesan("");
-        setGuestName("");
-        fetchMessages();
-      } else {
-        Alert.alert("Error", "Gagal mengirim pesan.");
-      }
-    } catch (err) {
-      console.error("Gagal kirim pesan:", err);
-      Alert.alert("Error", "Gagal mengirim pesan");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleDelete = async (forum_id: number) => {
-    Alert.alert(
-      "Konfirmasi Hapus",
-      "Apakah Anda yakin ingin menghapus pesan ini?",
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Hapus",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const token = await AsyncStorage.getItem("token");
-              const res = await fetch(`${API_URL}/forum/${forum_id}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-              });
-
-              if (res.ok) {
-                fetchMessages();
-                Alert.alert("Sukses", "Pesan berhasil dihapus");
-              } else {
-                Alert.alert("Error", "Gagal menghapus pesan.");
-              }
-            } catch (err) {
-              console.error("Gagal hapus pesan:", err);
-              Alert.alert("Error", "Gagal menghapus pesan");
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const getRoleInfo = (role?: string, name?: string) => {
-    switch (role) {
-      case "peneliti":
-        return { 
-          label: `${name}`, 
-          color: "#2196F3",
-          icon: "flask" as const,
-          badgeColor: "#e3f2fd"
-        };
-      case "pemerintah":
-        return { 
-          label: `${name}`, 
-          color: "#4CAF50",
-          icon: "business" as const,
-          badgeColor: "#e8f5e8"
-        };
-      default:
-        return { 
-          label: `${name}`, 
-          color: "#666",
-          icon: "person" as const,
-          badgeColor: "#f5f5f5"
-        };
-    }
-  };
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return "Baru saja";
-    if (diffMins < 60) return `${diffMins}m yang lalu`;
-    if (diffHours < 24) return `${diffHours}j yang lalu`;
-    if (diffDays < 7) return `${diffDays}h yang lalu`;
-    
-    return date.toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
-  const renderMessage = ({ item }: { item: ForumMessage }) => {
-    const roleInfo = getRoleInfo(
-      item.user?.role,
-      item.user?.nama_lengkap ?? item.guest_name ?? ""
-    );
-
-    const isOwnMessage = item.user?.nama_lengkap === profile?.nama_lengkap;
-
-    return (
-      <View style={[
-        styles.messageContainer,
-        isOwnMessage && styles.ownMessageContainer
-      ]}>
-        <View style={styles.messageHeader}>
-          <View style={[styles.roleBadge, { backgroundColor: roleInfo.badgeColor }]}>
-            <Ionicons name={roleInfo.icon} size={12} color={roleInfo.color} />
-            <Text style={[styles.senderName, { color: roleInfo.color }]}>
-              {roleInfo.label}
-            </Text>
-          </View>
-          <Text style={styles.timeText}>{formatTime(item.created_at)}</Text>
-        </View>
-        
-        <Text style={styles.messageText}>{item.isi_pesan}</Text>
-        
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDelete(item.forum_id)}
-        >
-          <Ionicons name="trash-outline" size={16} color="#F44336" />
-        </TouchableOpacity>
-      </View>
-    );
-  };
+  const isMessageValid = validateMessage(isiPesan);
 
   if (loading) {
     return (
@@ -254,8 +74,16 @@ export default function ForumPeneliti() {
 
       <FlatList
         data={messages}
-        keyExtractor={(item, index) => item.forum_id?.toString() ?? index.toString()}
-        renderItem={renderMessage}
+        keyExtractor={(item, index) => item.forum_id?.toString() ?? `message-${index}`}
+        renderItem={({ item }) => (
+          <ForumMessageItem
+            message={item}
+            profile={profile}
+            getRoleInfo={getRoleInfo}
+            formatTime={formatTime}
+            onDelete={handleDelete}
+          />
+        )}
         style={styles.messagesList}
         contentContainerStyle={styles.messagesContent}
         showsVerticalScrollIndicator={false}
@@ -276,7 +104,6 @@ export default function ForumPeneliti() {
             </Text>
           </View>
         }
-        inverted={false}
       />
 
       <View style={styles.inputContainer}>
@@ -289,14 +116,15 @@ export default function ForumPeneliti() {
             multiline
             maxLength={500}
             editable={!sending}
+            placeholderTextColor="#999"
           />
           <TouchableOpacity
             style={[
               styles.sendButton,
-              (!isiPesan.trim() || sending) && styles.sendButtonDisabled
+              (!isMessageValid || sending) && styles.sendButtonDisabled
             ]}
             onPress={handleSend}
-            disabled={!isiPesan.trim() || sending}
+            disabled={!isMessageValid || sending}
           >
             {sending ? (
               <ActivityIndicator size="small" color="white" />
@@ -367,62 +195,6 @@ const styles = StyleSheet.create({
   messagesContent: {
     padding: 16,
     paddingBottom: 8,
-  },
-  messageContainer: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-    borderLeftWidth: 4,
-    borderLeftColor: "#e0e0e0",
-  },
-  ownMessageContainer: {
-    borderLeftColor: "#2196F3",
-    backgroundColor: "#f0f7ff",
-  },
-  messageHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  roleBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  senderName: {
-    fontSize: 12,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  timeText: {
-    fontSize: 11,
-    color: "#999",
-    position:'absolute',
-    top:0,
-    right:20
-  },
-  messageText: {
-    fontSize: 14,
-    color: "#333",
-    lineHeight: 20,
-  },
-  deleteButton: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    padding: 4,
   },
   inputContainer: {
     padding: 16,

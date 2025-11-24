@@ -31,13 +31,15 @@ export interface Lokasi {
   nama_lokasi: string;
   koordinat: string;
   deskripsi: string;
-  kondisi:  "baik" | "sedang" | "buruk";
+  kondisi: "baik" | "sedang" | "buruk";
   jumlah?: number;
   luas_area?: number;
   kerapatan?: number;
   tinggi_rata2?: number;
   diameter_rata2?: number;
   tanggal_input?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface LokasiStats {
@@ -47,4 +49,13 @@ export interface LokasiStats {
   lokasiBuruk: number;
   totalPohon: number;
   totalLuas: number;
+  kondisiBaik: number;
+  kondisiSedang: number;
+  kondisiBuruk: number;
+}
+
+// lokasi pemerintah
+export interface StatusInfo {
+  color: string;
+  icon: "checkmark-circle" | "alert-circle" | "close-circle" | "help-circle";
 }

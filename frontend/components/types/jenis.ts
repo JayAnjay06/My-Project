@@ -23,3 +23,8 @@ export interface Jenis {
   created_at?: string;
   updated_at?: string;
 }
+
+// pemerintah
+export interface JenisStats {
+  totalJenis: number;
+}

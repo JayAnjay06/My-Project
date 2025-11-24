@@ -41,6 +41,17 @@ export class LokasiService {
     const lokasiBuruk = lokasiList.filter(l => l.kondisi?.toLowerCase() === 'buruk').length;
     const totalPohon = lokasiList.reduce((sum, l) => sum + (l.jumlah || 0), 0);
     const totalLuas = lokasiList.reduce((sum, l) => sum + (l.luas_area || 0), 0);
+     const kondisiBaik = lokasiList.filter(item => 
+      item.kondisi?.toLowerCase() === 'baik'
+    ).length;
+    
+    const kondisiSedang = lokasiList.filter(item => 
+      item.kondisi?.toLowerCase() === 'sedang'
+    ).length;
+    
+    const kondisiBuruk = lokasiList.filter(item => 
+      item.kondisi?.toLowerCase() === 'buruk'
+    ).length;
 
     return {
       totalLokasi,
@@ -48,7 +59,10 @@ export class LokasiService {
       lokasiSedang,
       lokasiBuruk,
       totalPohon,
-      totalLuas
+      totalLuas,
+      kondisiBaik,
+      kondisiSedang,
+      kondisiBuruk
     };
   }
 }

@@ -1,6 +1,15 @@
-import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, 
-        KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Image, 
-        StatusBar} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform, ScrollView,
+  StyleSheet,
+  Image,
+  StatusBar
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useLogin } from '@/components/hooks/useLogin';
@@ -22,13 +31,13 @@ export default function Login() {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <StatusBar barStyle={'dark-content'}/>
+      <StatusBar barStyle={'dark-content'} />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Image
-            source={require('../../assets/images/icon.png')}
+            source={require('@/assets/images/icon.png')}
             style={styles.icon} />
           <Text style={styles.title}>Masuk ke Akun</Text>
           <Text style={styles.subtitle}>
@@ -44,7 +53,7 @@ export default function Login() {
               autoCapitalize="none"
               style={styles.input}
               placeholder="Masukkan username"
-              placeholderTextColor="#999"/>
+              placeholderTextColor="#999" />
           </View>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
@@ -55,14 +64,14 @@ export default function Login() {
                 secureTextEntry={secure}
                 style={styles.passwordInput}
                 placeholder="Masukkan password"
-                placeholderTextColor="#999"/>
+                placeholderTextColor="#999" />
               <TouchableOpacity
                 onPress={handleToggleSecure}
                 style={styles.eyeButton}>
                 <Ionicons
                   name={secure ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
-                  color="#666"/>
+                  color="#666" />
               </TouchableOpacity>
             </View>
           </View>

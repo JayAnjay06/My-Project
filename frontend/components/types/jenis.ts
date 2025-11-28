@@ -6,13 +6,13 @@
 //   gambar: string | null;
 // };
 
-// export type FormState = {
-//   jenis_id: number | null;
-//   nama_ilmiah: string;
-//   nama_lokal: string;
-//   deskripsi: string;
-//   gambar: any;
-// };
+export type FormState = {
+  jenis_id: number | null;
+  nama_ilmiah: string;
+  nama_lokal: string;
+  deskripsi: string;
+  gambar: any;
+};
 
 export interface Jenis {
   jenis_id: number;

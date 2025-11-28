@@ -1,19 +1,23 @@
 import React, { useRef, useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
   ScrollView,
-  KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Alert 
+  Alert,
+  ActivityIndicator,
+  StatusBar,
+  Image
 } from "react-native";
 import { useChat } from '@/components/hooks/useChat';
 import { MessageBubble } from '@/components/role/user/chat/MessageBubble';
 import { TypingIndicator } from '@/components/role/user/chat/TypingIndicator';
 import { ChatEmptyState } from '@/components/role/user/chat/ChatEmptyState';
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ChatAiScreen() {
   const {
@@ -47,52 +51,84 @@ export default function ChatAiScreen() {
   const isQuestionValid = validateQuestion(pertanyaan);
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Chat AI Mangrove 🌱</Text>
-        <Text style={styles.headerSubtitle}>
-          Tanya seputar ekosistem mangrove
-        </Text>
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#0A7B79" />
 
-      {/* Area Chat */}
-      <ScrollView 
-        ref={scrollViewRef}
-        style={styles.chatContainer}
-        showsVerticalScrollIndicator={false}
+      {/*Header*/}
+      <LinearGradient
+        colors={['#0A7B79', '#0D9488', '#14B8A6']}
+        style={styles.header}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
       >
-        {messages.length === 0 ? (
-          <ChatEmptyState />
-        ) : (
-          messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              formatTime={formatTime}
-            />
-          ))
-        )}
+        <View style={styles.headerContent}>
+          <View style={styles.headerIcon}>
+            <Image
+              source={require('@/assets/images/icon.png')}
+              style={styles.icon} />
+          </View>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Mangrove AI Assistant</Text>
+            <Text style={styles.headerSubtitle}>
+              Tanya seputar ekosistem mangrove 🌱
+            </Text>
+          </View>
+        </View>
+      </LinearGradient>
 
-        {loading && <TypingIndicator />}
-      </ScrollView>
+      {/* Chat Area */}
+      <LinearGradient
+        colors={['#F8FAFC', '#F1F5F9', '#E2E8F0']}
+        style={styles.chatBackground}
+      >
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.chatContainer}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.chatContent}
+        >
+          {messages.length === 0 ? (
+            <ChatEmptyState />
+          ) : (
+            messages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                formatTime={formatTime}
+              />
+            ))
+          )}
+
+          {loading && <TypingIndicator />}
+        </ScrollView>
+      </LinearGradient>
 
       {/* Input Area */}
-      <View style={styles.inputContainer}>
-        <View style={styles.inputWrapper}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Ketik pertanyaan Anda..."
-            value={pertanyaan}
-            onChangeText={setPertanyaan}
-            multiline
-            maxLength={500}
-            placeholderTextColor="#999"
-          />
+      <View style={styles.inputSection}>
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Tanya tentang mangrove..."
+              value={pertanyaan}
+              onChangeText={setPertanyaan}
+              multiline
+              maxLength={500}
+              placeholderTextColor="#94A3B8"
+              textAlignVertical="center"
+            />
+
+            {/* Character Counter */}
+            {pertanyaan.length > 0 && (
+              <View style={styles.charCounter}>
+                <Text style={styles.charCount}>
+                  {pertanyaan.length}/500
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Send Button */}
           <TouchableOpacity
             onPress={handleKirim}
             style={[
@@ -101,92 +137,175 @@ export default function ChatAiScreen() {
             ]}
             disabled={!isQuestionValid || loading}
           >
-            <Text style={styles.sendButtonText}>
-              {loading ? "⏳" : "➤"}
-            </Text>
+            <LinearGradient
+              colors={isQuestionValid && !loading ? ['#0EA5E9', '#0284C7'] : ['#CBD5E1', '#94A3B8']}
+              style={styles.sendButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              {loading ? (
+                <View style={styles.buttonContent}>
+                  <ActivityIndicator size="small" color="white" />
+                  <Text style={styles.sendButtonText}>Processing</Text>
+                </View>
+              ) : (
+                <View style={styles.buttonContent}>
+                  <Ionicons name="send" size={18} color="white" />
+                  <Text style={styles.sendButtonText}>Send</Text>
+                </View>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
-        
-        <Text style={styles.charCount}>
-          {pertanyaan.length}/500 karakter
-        </Text>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#F8FAFC",
   },
   header: {
-    backgroundColor: "#228B22",
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 24,
+    backgroundColor: '#ffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  icon: {
+    width: 60,
+    height: 60,
+  },
+  headerText: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 22,
+    fontWeight: "700",
     color: "white",
-    textAlign: "center",
+    letterSpacing: 0.5,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "white",
-    textAlign: "center",
-    marginTop: 4,
-    opacity: 0.9,
+    color: "rgba(255, 255, 255, 0.9)",
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  chatBackground: {
+    flex: 1,
   },
   chatContainer: {
     flex: 1,
+  },
+  chatContent: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 20,
+    minHeight: '100%',
+  },
+  inputSection: {
+    backgroundColor: 'white',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   inputContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "white",
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 12,
   },
   inputWrapper: {
-    flexDirection: "row",
-    alignItems: "flex-end",
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    minHeight: 56,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    position: 'relative',
   },
   textInput: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
+    fontSize: 11,
+    color: '#1E293B',
     maxHeight: 100,
-    marginRight: 8,
+    paddingRight: 50,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
+    lineHeight: 20,
   },
-  sendButton: {
-    backgroundColor: "#228B22",
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sendButtonDisabled: {
-    backgroundColor: "#ccc",
-  },
-  sendButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+  charCounter: {
+    position: 'absolute',
+    right: 12,
+    bottom: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
   },
   charCount: {
-    fontSize: 12,
-    color: "#999",
-    textAlign: "right",
-    marginTop: 4,
+    fontSize: 10,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  sendButton: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#0EA5E9',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    minWidth: 80,
+    height: 56,
+  },
+  sendButtonGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+  },
+  sendButtonDisabled: {
+    shadowColor: '#64748B',
+    shadowOpacity: 0.2,
+    elevation: 2,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  sendButtonText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
 });

@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
   StyleSheet,
   ActivityIndicator
 } from "react-native";
@@ -54,12 +54,12 @@ export default function CreateLaporan() {
         {/* Informasi Dasar */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Informasi Laporan</Text>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
               Pilih Lokasi <Text style={styles.required}>*</Text>
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.lokasiSelector}
               onPress={() => setShowLokasiModal(true)}
               disabled={loading}
@@ -89,7 +89,7 @@ export default function CreateLaporan() {
         {/* Isi Laporan */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Detail Laporan</Text>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
               Isi Laporan <Text style={styles.required}>*</Text>

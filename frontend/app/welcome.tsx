@@ -14,7 +14,7 @@ export default function Welcome() {
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <Image
-            source={require('../assets/images/icon.png')}
+            source={require('@/assets/images/icon.png')}
             style={styles.icon} />
           <Text style={styles.logoText}>MangroveCare</Text>
         </View>
@@ -24,7 +24,7 @@ export default function Welcome() {
       </View>
       <View style={styles.illustrationContainer}>
         <Image
-          source={require('../assets/images/logo.png')}
+          source={require('@/assets/images/logo.png')}
           style={styles.illustration} />
       </View>
       <View style={styles.buttonsContainer}>

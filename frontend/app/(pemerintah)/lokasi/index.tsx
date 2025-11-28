@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  ActivityIndicator, 
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
   StyleSheet,
   RefreshControl,
   Alert

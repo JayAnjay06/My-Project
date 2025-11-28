@@ -82,10 +82,10 @@ export const AnalisisTab: React.FC<AnalisisTabProps> = ({
       {/* Section Analisis Laporan */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
-          <Ionicons name="analytics" size={18} color="#2196F3" /> 
+          <Ionicons name="analytics" size={18} color="#2196F3" />
           Analisis AI Mangrove
         </Text>
-        
+
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={selectedLaporan}
@@ -123,15 +123,15 @@ export const AnalisisTab: React.FC<AnalisisTabProps> = ({
             </Text>
             <View style={styles.laporanMeta}>
               <Text style={styles.laporanMetaText}>
-                <Ionicons name="location" size={12} color="#666" /> 
+                <Ionicons name="location" size={12} color="#666" />
                 {getSelectedLaporanData()?.lokasi?.nama_lokasi || 'Lokasi tidak tersedia'}
               </Text>
               <Text style={styles.laporanMetaText}>
-                <Ionicons name="calendar" size={12} color="#666" /> 
+                <Ionicons name="calendar" size={12} color="#666" />
                 {formatDate(getSelectedLaporanData()?.tanggal_laporan || "")}
               </Text>
               <Text style={styles.laporanMetaText}>
-                <Ionicons name="image" size={12} color="#666" /> 
+                <Ionicons name="image" size={12} color="#666" />
                 {getSelectedLaporanData()?.foto ? 'Ada foto' : 'Tidak ada foto'}
               </Text>
             </View>
@@ -161,10 +161,10 @@ export const AnalisisTab: React.FC<AnalisisTabProps> = ({
       {hasil && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            <Ionicons name="checkmark-circle" size={18} color="#4CAF50" /> 
+            <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
             Hasil Analisis AI
           </Text>
-          
+
           <View style={styles.resultCard}>
             {/* Kondisi */}
             <View style={styles.resultRow}>
@@ -202,7 +202,7 @@ export const AnalisisTab: React.FC<AnalisisTabProps> = ({
                 <View style={styles.confidenceContainer}>
                   <View style={[
                     styles.confidenceBar,
-                    { 
+                    {
                       width: `${(hasil.confidence || 0) * 100}%`,
                       backgroundColor: getConfidenceColor(hasil.confidence || 0)
                     }
@@ -233,7 +233,7 @@ export const AnalisisTab: React.FC<AnalisisTabProps> = ({
             {/* Rekomendasi */}
             <View style={styles.rekomendasiContainer}>
               <Text style={styles.rekomendasiLabel}>
-                <Ionicons name="bulb" size={16} color="#FFC107" /> 
+                <Ionicons name="bulb" size={16} color="#FFC107" />
                 Rekomendasi Penanganan AI
               </Text>
               <Text style={styles.rekomendasiText}>
@@ -250,7 +250,7 @@ export const AnalisisTab: React.FC<AnalisisTabProps> = ({
           </View>
 
           {/* Tombol Buat Keputusan */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.buatKeputusanButton}
             onPress={onBuatKeputusan}
           >

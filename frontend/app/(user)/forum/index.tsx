@@ -61,7 +61,7 @@ export default function ForumScreen() {
     return (
       <NameSetupScreen
         guestName={guestName}
-        setGuestName={(name) => {}}
+        setGuestName={(name) => { }}
         onSaveName={handleSaveName}
         validateName={validateName}
       />
@@ -69,7 +69,7 @@ export default function ForumScreen() {
   }
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}

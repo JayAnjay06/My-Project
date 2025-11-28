@@ -1,12 +1,11 @@
 import React from "react";
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
   StyleSheet,
   RefreshControl,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AnalisisTab } from '@/components/role/pemerintah/analisis/AnalisisTab';
@@ -75,24 +74,24 @@ export default function AnalisisDanKeputusan() {
           style={[styles.tab, activeTab === 'analisis' && styles.activeTab]}
           onPress={() => setActiveTab('analisis')}
         >
-          <Ionicons 
-            name="analytics" 
-            size={20} 
-            color={activeTab === 'analisis' ? '#2196F3' : '#666'} 
+          <Ionicons
+            name="analytics"
+            size={20}
+            color={activeTab === 'analisis' ? '#2196F3' : '#666'}
           />
           <Text style={[styles.tabText, activeTab === 'analisis' && styles.activeTabText]}>
             Analisis AI
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[styles.tab, activeTab === 'keputusan' && styles.activeTab]}
           onPress={() => setActiveTab('keputusan')}
         >
-          <Ionicons 
-            name="document-text" 
-            size={20} 
-            color={activeTab === 'keputusan' ? '#2196F3' : '#666'} 
+          <Ionicons
+            name="document-text"
+            size={20}
+            color={activeTab === 'keputusan' ? '#2196F3' : '#666'}
           />
           <Text style={[styles.tabText, activeTab === 'keputusan' && styles.activeTabText]}>
             Hasil Keputusan
@@ -100,8 +99,8 @@ export default function AnalisisDanKeputusan() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

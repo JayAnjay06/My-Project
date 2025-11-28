@@ -16,6 +16,8 @@
 // };
 
 export interface Laporan {
+  user_id: any;
+  foto: any;
   laporan_id: number;
   jenis_laporan: string;
   isi_laporan: string;

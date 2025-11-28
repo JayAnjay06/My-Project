@@ -1,11 +1,10 @@
-// app/laporan-list.tsx
 import React, { useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
   ActivityIndicator,
   RefreshControl,
   Alert
@@ -47,8 +46,6 @@ export default function LaporanList() {
   };
 
   const handleLaporanPress = (item: any) => {
-    // Navigate to detail page if needed
-    // router.push(`/laporan/${item.laporan_id}`);
   };
 
   if (loading) {
@@ -69,7 +66,7 @@ export default function LaporanList() {
         </Text>
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.createButton}
         onPress={handleCreateLaporan}
       >

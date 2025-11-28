@@ -1,11 +1,10 @@
-// app/laporan-pemerintah.tsx
 import React, { useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
   ActivityIndicator,
   RefreshControl,
   Alert
@@ -41,8 +40,6 @@ export default function LaporanPemerintah() {
   }, [error, clearError]);
 
   const handleCardPress = (item: any) => {
-    // Navigate to detail page if needed
-    // router.push(`/laporan/${item.laporan_id}`);
   };
 
   if (loading) {

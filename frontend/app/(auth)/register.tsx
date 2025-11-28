@@ -1,5 +1,13 @@
-import {View, Text, TextInput, TouchableOpacity, 
-        KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
+import {
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity,
+  KeyboardAvoidingView, 
+  Platform, 
+  ScrollView, 
+  StyleSheet
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useRegister } from '@/components/hooks/useRegister';
@@ -28,14 +36,14 @@ export default function Register() {
   const isButtonDisabled = loading || !isFormValid;
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#2E8B57" />
@@ -69,7 +77,7 @@ export default function Register() {
               autoCapitalize="none"
               style={styles.input}
               placeholder="Masukkan username"
-              placeholderTextColor="#999"/>
+              placeholderTextColor="#999" />
           </View>
 
           <View style={styles.inputContainer}>
@@ -81,7 +89,7 @@ export default function Register() {
               autoCapitalize="none"
               style={styles.input}
               placeholder="Masukkan email"
-              placeholderTextColor="#999"/>
+              placeholderTextColor="#999" />
           </View>
 
           <View style={styles.inputContainer}>
@@ -93,14 +101,14 @@ export default function Register() {
                 secureTextEntry={secure}
                 style={styles.passwordInput}
                 placeholder="Masukkan password (min. 6 karakter)"
-                placeholderTextColor="#999"/>
+                placeholderTextColor="#999" />
               <TouchableOpacity
                 onPress={handleToggleSecure}
                 style={styles.eyeButton}>
-                <Ionicons 
-                  name={secure ? 'eye-off-outline' : 'eye-outline'} 
-                  size={20} 
-                  color="#666" 
+                <Ionicons
+                  name={secure ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color="#666"
                 />
               </TouchableOpacity>
             </View>
@@ -115,10 +123,10 @@ export default function Register() {
                   role === 'peneliti' && styles.roleButtonActive
                 ]}
                 onPress={() => setRole('peneliti')}>
-                <Ionicons 
-                  name="search" 
-                  size={20} 
-                  color={role === 'peneliti' ? '#FFFFFF' : '#2E8B57'} 
+                <Ionicons
+                  name="search"
+                  size={20}
+                  color={role === 'peneliti' ? '#FFFFFF' : '#2E8B57'}
                 />
                 <Text style={[
                   styles.roleButtonText,
@@ -134,9 +142,9 @@ export default function Register() {
                   role === 'pemerintah' && styles.roleButtonActive
                 ]}
                 onPress={() => setRole('pemerintah')}>
-                <Ionicons 
-                  name="business" 
-                  size={20} 
+                <Ionicons
+                  name="business"
+                  size={20}
                   color={role === 'pemerintah' ? '#FFFFFF' : '#2E8B57'} />
                 <Text style={[
                   styles.roleButtonText,

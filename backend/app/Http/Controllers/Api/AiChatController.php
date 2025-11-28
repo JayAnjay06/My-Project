@@ -49,7 +49,6 @@ class AiChatController extends Controller
                     ],
                 ]);
 
-                // 🔍 Jika request ke OpenRouter gagal (misalnya 401, 429, 500)
                 if ($response->failed()) {
                     $ai_status = "error";
                     $jawaban = "Gagal memanggil API OpenRouter. Status: " . $response->status() . 
@@ -68,13 +67,11 @@ class AiChatController extends Controller
                 }
             }
         } catch (\Exception $e) {
-            // Tangani error tak terduga (misal koneksi gagal total)
             $ai_status = "error";
             $jawaban = "Terjadi kesalahan: " . $e->getMessage();
             Log::error('AI Chat Exception', ['message' => $e->getMessage()]);
         }
 
-        // 🧹 Bersihkan teks jawaban dari karakter aneh
         $jawaban = preg_replace('/[^A-Za-z0-9À-ÿ\s\.,;:!\?]/u', '', $jawaban);
         $jawaban = str_replace(["\n", "\r"], ' ', $jawaban);
         $jawaban = preg_replace('/\s+/', ' ', $jawaban);

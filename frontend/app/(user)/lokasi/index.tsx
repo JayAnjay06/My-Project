@@ -1,15 +1,15 @@
-import React, { useEffect } from "react";
 import {
-  View,
-  Text,
-  FlatList,
   ActivityIndicator,
-  StyleSheet,
+  Alert,
+  FlatList,
   RefreshControl,
-  Alert
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
+import React, { useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { useLokasi } from '@/components/hooks/useLokasi';
+import { useLokasi } from '@/components/hooks/user/useLokasi';
 import { LokasiCard } from '@/components/role/user/lokasi/LokasiCard';
 
 export default function LokasiUserPage() {

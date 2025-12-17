@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { FormState } from "@/components/types/lokasi";
 import LokasiList from "./list";
 import LokasiForm from "./form";
+import { FormState } from "@/components/types/lokasi";
 
 export default function LokasiPage() {
   const [mode, setMode] = useState<"list" | "create" | "edit">("list");

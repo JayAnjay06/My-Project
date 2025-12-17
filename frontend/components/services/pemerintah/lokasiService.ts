@@ -1,15 +1,15 @@
-import { Lokasi, LokasiStats } from '@/components/types/lokasi';
 import { API_URL } from '@/components/api/api';
+import { Lokasi, LokasiStats } from '@/components/types/lokasi';
 
 export class LokasiService {
   static async fetchLokasi(): Promise<Lokasi[]> {
     try {
       const response = await fetch(`${API_URL}/lokasi`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
@@ -21,11 +21,11 @@ export class LokasiService {
   static async fetchLokasiById(id: number): Promise<Lokasi> {
     try {
       const response = await fetch(`${API_URL}/lokasi/${id}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
@@ -41,15 +41,15 @@ export class LokasiService {
     const lokasiBuruk = lokasiList.filter(l => l.kondisi?.toLowerCase() === 'buruk').length;
     const totalPohon = lokasiList.reduce((sum, l) => sum + (l.jumlah || 0), 0);
     const totalLuas = lokasiList.reduce((sum, l) => sum + (l.luas_area || 0), 0);
-     const kondisiBaik = lokasiList.filter(item => 
+    const kondisiBaik = lokasiList.filter(item =>
       item.kondisi?.toLowerCase() === 'baik'
     ).length;
-    
-    const kondisiSedang = lokasiList.filter(item => 
+
+    const kondisiSedang = lokasiList.filter(item =>
       item.kondisi?.toLowerCase() === 'sedang'
     ).length;
-    
-    const kondisiBuruk = lokasiList.filter(item => 
+
+    const kondisiBuruk = lokasiList.filter(item =>
       item.kondisi?.toLowerCase() === 'buruk'
     ).length;
 

@@ -1,4 +1,3 @@
-// hooks/useRegister.ts
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';

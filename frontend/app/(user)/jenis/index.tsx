@@ -1,16 +1,16 @@
+import { JenisCard } from '@/components/role/user/jenis/JenisCard';
+import { useJenis } from '@/components/hooks/user/useJenis';
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import {
-  View,
-  Text,
-  FlatList,
   ActivityIndicator,
-  StyleSheet,
-  RefreshControl,
   Alert,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useJenis } from '@/components/hooks/useJenis';
-import { JenisCard } from '@/components/role/user/jenis/JenisCard';
 
 export default function JenisMangroveUserPage() {
   const {

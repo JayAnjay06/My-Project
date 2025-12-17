@@ -1,17 +1,3 @@
-// export type Lokasi = {
-//   lokasi_id: number;
-//   nama_lokasi: string;
-//   koordinat: string;
-//   jumlah: number;
-//   kerapatan: number;
-//   tinggi_rata2: number;
-//   diameter_rata2: number;
-//   kondisi: "baik" | "sedang" | "buruk";
-//   luas_area: number;
-//   deskripsi: string;
-//   tanggal_input: string;
-// };
-
 export type FormState = {
   lokasi_id: number | null;
   nama_lokasi: string;
@@ -54,8 +40,21 @@ export interface LokasiStats {
   kondisiBuruk: number;
 }
 
-// lokasi pemerintah
 export interface StatusInfo {
   color: string;
   icon: "checkmark-circle" | "alert-circle" | "close-circle" | "help-circle";
+}
+
+//Peneliti
+export interface LokasiFormData {
+  nama_lokasi: string;
+  koordinat: string;
+  jumlah?: number | null;
+  kerapatan?: number | null;
+  tinggi_rata2?: number | null;
+  diameter_rata2?: number | null;
+  kondisi?: string | null;
+  luas_area?: number | null;
+  deskripsi?: string | null;
+  tanggal_input?: string | null;
 }

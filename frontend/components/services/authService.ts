@@ -1,4 +1,3 @@
-// services/authService.ts
 import { LoginData, LoginResponse } from '@/components/hooks/useLogin';
 import { RegisterData } from '@/components/hooks/useRegister';
 import { API_URL } from '../api/api';

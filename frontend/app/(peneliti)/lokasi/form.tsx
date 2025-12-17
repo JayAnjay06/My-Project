@@ -1,21 +1,19 @@
-import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
   Platform,
+  ScrollView,
   StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Picker } from "@react-native-picker/picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import * as Location from "expo-location";
+import React from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { API_URL } from "@/components/api/api";
-import { FormState } from "@/components/types/lokasi";
+import { Picker } from "@react-native-picker/picker";
+import { FormState } from '@/components/types/lokasi';
+import { useLokasiFormPeneliti } from '@/components/hooks/peneliti/useLokasi';
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { FormInputField } from '@/components/role/peneliti/lokasi/FormInputField';
+import { CoordinateInput } from '@/components/role/peneliti/lokasi/CoordinateInput';
 
 type Props = {
   initialForm: FormState;
@@ -25,141 +23,17 @@ type Props = {
 };
 
 export default function LokasiForm({ initialForm, mode, onSuccess, onCancel }: Props) {
-  const [form, setForm] = useState<FormState>(initialForm);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const getCurrentLocation = async () => {
-    try {
-      setIsLoading(true);
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Izin ditolak", "Aplikasi membutuhkan akses lokasi");
-        return;
-      }
-
-      const location = await Location.getCurrentPositionAsync({});
-      const coords = `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`;
-      setForm({ ...form, koordinat: coords });
-      Alert.alert("Sukses", "Koordinat berhasil diambil");
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Gagal mengambil lokasi");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!form.nama_lokasi || !form.koordinat) {
-      Alert.alert("Error", "Nama lokasi dan koordinat wajib diisi");
-      return;
-    }
-
-    setIsLoading(true);
-    const token = await AsyncStorage.getItem("token");
-    const payload = {
-      nama_lokasi: form.nama_lokasi,
-      koordinat: form.koordinat,
-      jumlah: form.jumlah ? parseInt(form.jumlah) : null,
-      kerapatan: form.kerapatan ? parseFloat(form.kerapatan) : null,
-      tinggi_rata2: form.tinggi_rata2 ? parseFloat(form.tinggi_rata2) : null,
-      diameter_rata2: form.diameter_rata2 ? parseFloat(form.diameter_rata2) : null,
-      kondisi: form.kondisi || null,
-      luas_area: form.luas_area ? parseFloat(form.luas_area) : null,
-      deskripsi: form.deskripsi || null,
-      tanggal_input: form.tanggal_input
-        ? form.tanggal_input.toISOString().split("T")[0]
-        : null,
-    };
-
-    const url =
-      mode === "edit" && form.lokasi_id
-        ? `${API_URL}/lokasi/${form.lokasi_id}`
-        : `${API_URL}/lokasi`;
-
-    try {
-      const response = await fetch(url, {
-        method: mode === "edit" ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) throw new Error("Network error");
-
-      Alert.alert(
-        "Sukses", 
-        mode === "create" ? "Lokasi berhasil dibuat" : "Lokasi berhasil diperbarui"
-      );
-      onSuccess();
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Gagal menyimpan data");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!form.lokasi_id) return;
-    
-    Alert.alert("Konfirmasi Hapus", "Apakah Anda yakin ingin menghapus lokasi ini?", [
-      { text: "Batal", style: "cancel" },
-      {
-        text: "Hapus",
-        style: "destructive",
-        onPress: async () => {
-          setIsLoading(true);
-          const token = await AsyncStorage.getItem("token");
-          try {
-            await fetch(`${API_URL}/lokasi/${form.lokasi_id}`, {
-              method: "DELETE",
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            Alert.alert("Sukses", "Lokasi berhasil dihapus");
-            onSuccess();
-          } catch (err) {
-            console.error(err);
-            Alert.alert("Error", "Gagal menghapus lokasi");
-          } finally {
-            setIsLoading(false);
-          }
-        },
-      },
-    ]);
-  };
-
-  const renderInputField = (
-    label: string,
-    value: string,
-    onChange: (text: string) => void,
-    options: any = {}
-  ) => (
-    <View style={styles.inputContainer}>
-      <Text style={styles.label}>
-        {label}
-        {options.required && <Text style={styles.required}> *</Text>}
-      </Text>
-      <TextInput
-        value={value}
-        onChangeText={onChange}
-        style={[
-          styles.input,
-          options.multiline && styles.textArea,
-          options.error && styles.inputError
-        ]}
-        placeholder={options.placeholder || `Masukkan ${label.toLowerCase()}`}
-        placeholderTextColor="#999"
-        keyboardType={options.keyboardType || "default"}
-        multiline={options.multiline || false}
-        numberOfLines={options.multiline ? 4 : 1}
-        editable={!isLoading}
-      />
-    </View>
-  );
+  const {
+    form,
+    showDatePicker,
+    isLoading,
+    setShowDatePicker,
+    handleFieldChange,
+    handleGetCurrentLocation,
+    handleDateChange,
+    handleSubmit,
+    handleDelete,
+  } = useLokasiFormPeneliti(initialForm);
 
   return (
     <View style={styles.container}>
@@ -177,37 +51,25 @@ export default function LokasiForm({ initialForm, mode, onSuccess, onCancel }: P
         {/* Informasi Dasar */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Informasi Dasar</Text>
-          {renderInputField(
-            "Nama Lokasi",
-            form.nama_lokasi,
-            (text) => setForm({ ...form, nama_lokasi: text }),
-            { required: true }
-          )}
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              Koordinat
-              <Text style={styles.required}> *</Text>
-            </Text>
-            <View style={styles.coordinateContainer}>
-              <TextInput
-                value={form.koordinat}
-                onChangeText={(text) => setForm({ ...form, koordinat: text })}
-                style={[styles.input, styles.coordinateInput]}
-                placeholder="Contoh: -6.123456, 106.123456"
-                placeholderTextColor="#999"
-                editable={!isLoading}
-              />
-              <TouchableOpacity
-                style={[styles.locationButton, isLoading && styles.buttonDisabled]}
-                onPress={getCurrentLocation}
-                disabled={isLoading}
-              >
-                <Ionicons name="location" size={20} color="#fff" />
-                <Text style={styles.locationButtonText}>Lokasi</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <FormInputField
+            label="Nama Lokasi"
+            value={form.nama_lokasi}
+            onChangeText={(text) => handleFieldChange('nama_lokasi', text)}
+            required
+            placeholder="Masukkan nama lokasi"
+            editable={!isLoading}
+          />
+
+          <CoordinateInput
+            label="Koordinat"
+            value={form.koordinat}
+            onCoordinateChange={(text) => handleFieldChange('koordinat', text)}
+            onGetLocation={handleGetCurrentLocation}
+            required
+            isLoading={isLoading}
+            editable={!isLoading}
+          />
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Tanggal Input</Text>
@@ -228,10 +90,7 @@ export default function LokasiForm({ initialForm, mode, onSuccess, onCancel }: P
                 value={form.tanggal_input || new Date()}
                 mode="date"
                 display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={(event, date) => {
-                  setShowDatePicker(Platform.OS === "ios");
-                  if (date) setForm({ ...form, tanggal_input: date });
-                }}
+                onChange={handleDateChange}
               />
             )}
           </View>
@@ -240,47 +99,64 @@ export default function LokasiForm({ initialForm, mode, onSuccess, onCancel }: P
         {/* Data Pohon */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Data Pohon</Text>
+
           <View style={styles.row}>
-            {renderInputField(
-              "Jumlah Pohon",
-              form.jumlah,
-              (text) => setForm({ ...form, jumlah: text }),
-              { keyboardType: "numeric", placeholder: "0" }
-            )}
-            {renderInputField(
-              "Kerapatan",
-              form.kerapatan,
-              (text) => setForm({ ...form, kerapatan: text }),
-              { keyboardType: "numeric", placeholder: "0" }
-            )}
+            <View style={styles.halfInput}>
+              <FormInputField
+                label="Jumlah Pohon"
+                value={form.jumlah}
+                onChangeText={(text) => handleFieldChange('jumlah', text)}
+                keyboardType="numeric"
+                placeholder="0"
+                editable={!isLoading}
+              />
+            </View>
+            <View style={styles.halfInput}>
+              <FormInputField
+                label="Kerapatan"
+                value={form.kerapatan}
+                onChangeText={(text) => handleFieldChange('kerapatan', text)}
+                keyboardType="numeric"
+                placeholder="0"
+                editable={!isLoading}
+              />
+            </View>
           </View>
 
           <View style={styles.row}>
-            {renderInputField(
-              "Tinggi Rata-rata (m)",
-              form.tinggi_rata2,
-              (text) => setForm({ ...form, tinggi_rata2: text }),
-              { keyboardType: "numeric", placeholder: "0.00" }
-            )}
-            {renderInputField(
-              "Diameter Rata-rata (cm)",
-              form.diameter_rata2,
-              (text) => setForm({ ...form, diameter_rata2: text }),
-              { keyboardType: "numeric", placeholder: "0.00" }
-            )}
+            <View style={styles.halfInput}>
+              <FormInputField
+                label="Tinggi Rata-rata (m)"
+                value={form.tinggi_rata2}
+                onChangeText={(text) => handleFieldChange('tinggi_rata2', text)}
+                keyboardType="numeric"
+                placeholder="0.00"
+                editable={!isLoading}
+              />
+            </View>
+            <View style={styles.halfInput}>
+              <FormInputField
+                label="Diameter Rata-rata (cm)"
+                value={form.diameter_rata2}
+                onChangeText={(text) => handleFieldChange('diameter_rata2', text)}
+                keyboardType="numeric"
+                placeholder="0.00"
+                editable={!isLoading}
+              />
+            </View>
           </View>
         </View>
 
         {/* Informasi Tambahan */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Informasi Tambahan</Text>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Kondisi</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={form.kondisi}
-                onValueChange={(value) => setForm({ ...form, kondisi: value })}
+                onValueChange={(value) => handleFieldChange('kondisi', value)}
                 style={styles.picker}
                 enabled={!isLoading}
               >
@@ -292,26 +168,31 @@ export default function LokasiForm({ initialForm, mode, onSuccess, onCancel }: P
             </View>
           </View>
 
-          {renderInputField(
-            "Luas Area (ha)",
-            form.luas_area,
-            (text) => setForm({ ...form, luas_area: text }),
-            { keyboardType: "numeric", placeholder: "0.00" }
-          )}
+          <FormInputField
+            label="Luas Area (ha)"
+            value={form.luas_area}
+            onChangeText={(text) => handleFieldChange('luas_area', text)}
+            keyboardType="numeric"
+            placeholder="0.00"
+            editable={!isLoading}
+          />
 
-          {renderInputField(
-            "Deskripsi",
-            form.deskripsi,
-            (text) => setForm({ ...form, deskripsi: text }),
-            { multiline: true, placeholder: "Tambahkan deskripsi lokasi..." }
-          )}
+          <FormInputField
+            label="Deskripsi"
+            value={form.deskripsi}
+            onChangeText={(text) => handleFieldChange('deskripsi', text)}
+            multiline
+            numberOfLines={4}
+            placeholder="Tambahkan deskripsi lokasi..."
+            editable={!isLoading}
+          />
         </View>
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.submitButton, isLoading && styles.buttonDisabled]}
-            onPress={handleSubmit}
+            onPress={() => handleSubmit(mode, onSuccess)}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -326,7 +207,7 @@ export default function LokasiForm({ initialForm, mode, onSuccess, onCancel }: P
           {mode === "edit" && form.lokasi_id && (
             <TouchableOpacity
               style={[styles.deleteButton, isLoading && styles.buttonDisabled]}
-              onPress={handleDelete}
+              onPress={() => handleDelete(onSuccess)}
               disabled={isLoading}
             >
               <Ionicons name="trash" size={20} color="#fff" />
@@ -403,47 +284,6 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 8,
   },
-  required: {
-    color: "#F44336",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "#fafafa",
-  },
-  inputError: {
-    borderColor: "#F44336",
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: "top",
-  },
-  coordinateContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  coordinateInput: {
-    flex: 1,
-    marginRight: 8,
-  },
-  locationButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#4CAF50",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 80,
-    justifyContent: "center",
-  },
-  locationButtonText: {
-    color: "white",
-    fontWeight: "600",
-    marginLeft: 4,
-  },
   datePicker: {
     flexDirection: "row",
     alignItems: "center",
@@ -461,6 +301,11 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginHorizontal: -4,
+  },
+  halfInput: {
+    flex: 1,
+    marginHorizontal: 4,
   },
   pickerContainer: {
     borderWidth: 1,

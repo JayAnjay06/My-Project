@@ -1,17 +1,17 @@
+import { JenisCard } from '@/components/role/pemerintah/jenis/JenisCard';
+import { JenisStatsCard } from '@/components/role/pemerintah/jenis/JenisStatsCard';
+import { useJenisPemerintah } from '@/components/hooks/pemerintah/useJenis';
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import {
-  View,
-  Text,
-  FlatList,
   ActivityIndicator,
-  StyleSheet,
+  Alert,
+  FlatList,
   RefreshControl,
-  Alert
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useJenisMonitoring } from '@/components/hooks/useJenis';
-import { JenisStatsCard } from '@/components/role/pemerintah/jenis/JenisStatsCard';
-import { JenisCard } from '@/components/role/pemerintah/jenis/JenisCard';
 
 export default function JenisPemerintah() {
   const {
@@ -23,7 +23,7 @@ export default function JenisPemerintah() {
     fetchJenis,
     onRefresh,
     truncateText,
-  } = useJenisMonitoring();
+  } = useJenisPemerintah();
 
   useEffect(() => {
     if (error) {

@@ -27,14 +27,12 @@ class AiChatController extends Controller
 
         $pertanyaan = $request->pertanyaan;
         $jawaban = "";
-        $ai_status = "success"; // default status
+        $ai_status = "success";
 
         try {
-            // Jika pertanyaan tidak mengandung kata "mangrove"
             if (!preg_match('/mangrove/i', $pertanyaan)) {
                 $jawaban = "Maaf, saya kurang mengerti pertanyaan Anda. Saya hanya bisa membantu seputar mangrove.";
             } else {
-                // 🔑 Panggil API OpenRouter
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer ' . env('OPENROUTER_API_KEY_CHAT'),
                     'Content-Type'  => 'application/json',
@@ -54,13 +52,11 @@ class AiChatController extends Controller
                     $jawaban = "Gagal memanggil API OpenRouter. Status: " . $response->status() . 
                                " | Body: " . $response->body();
 
-                    // Log error ke storage/logs/laravel.log
                     Log::error('AI Chat Error', [
                         'status' => $response->status(),
                         'body' => $response->body(),
                     ]);
                 } else {
-                    // Ambil isi jawaban dari JSON
                     $jawaban = $response->json('choices.0.message.content')
                         ?? $response->json('choices.0.text')
                         ?? "Maaf, AI tidak merespon.";
@@ -76,14 +72,12 @@ class AiChatController extends Controller
         $jawaban = str_replace(["\n", "\r"], ' ', $jawaban);
         $jawaban = preg_replace('/\s+/', ' ', $jawaban);
 
-        // 💾 Simpan ke database
         $chat = AiChat::create([
             'user_id' => $request->user_id,
             'pertanyaan' => $pertanyaan,
             'jawaban' => trim($jawaban),
         ]);
 
-        // 🚀 Kembalikan respons JSON
         return response()->json([
             'status' => $ai_status,
             'data' => $chat

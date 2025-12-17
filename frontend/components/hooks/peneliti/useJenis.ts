@@ -1,82 +1,70 @@
-import { FormState, ImagePickerAsset } from '@/components/types/jenis';
-import * as ImagePicker from "expo-image-picker";
-import { useCallback, useState } from "react";
-import { Alert } from "react-native";
-import { JenisServiceP21 } from "../../sample sampah/jenisService";
+import { ImageService } from '@/components/services/imageService';
+import { FormState, Jenis } from '@/components/types/jenis';
+import { JenisServiceCRUD, JenisServicePeneliti } from '@/components/services/peneliti/jenisService';
+import { useCallback, useState } from 'react';
+import { Alert } from 'react-native';
 
-export class ImageService {
-  static async requestMediaLibraryPermissions(): Promise<boolean> {
-    try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        throw new Error('Izin akses galeri tidak diberikan');
-      }
-      return true;
-    } catch (error) {
-      console.error('Error requesting media library permissions:', error);
-      throw new Error('Gagal meminta izin akses galeri');
-    }
-  }
-
-  static async requestCameraPermissions(): Promise<boolean> {
-    try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        throw new Error('Izin akses kamera tidak diberikan');
-      }
-      return true;
-    } catch (error) {
-      console.error('Error requesting camera permissions:', error);
-      throw new Error('Gagal meminta izin akses kamera');
-    }
-  }
-
-  static async pickImageFromLibrary(): Promise<ImagePickerAsset | null> {
-    try {
-      await this.requestMediaLibraryPermissions();
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets.length > 0) {
-        return result.assets[0];
-      }
-      return null;
-    } catch (error) {
-      console.error('Error picking image from library:', error);
-      throw new Error('Gagal memilih gambar dari galeri');
-    }
-  }
-
-  static async takePhoto(): Promise<ImagePickerAsset | null> {
-    try {
-      await this.requestCameraPermissions();
-
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets.length > 0) {
-        return result.assets[0];
-      }
-      return null;
-    } catch (error) {
-      console.error('Error taking photo:', error);
-      throw new Error('Gagal mengambil foto');
-    }
-  }
+// Hook untuk list jenis (view)
+export interface UseJenisListPenelitiReturn {
+  jenisList: Jenis[];
+  loading: boolean;
+  error: string | null;
+  fetchJenis: () => Promise<void>;
+  truncateText: (text: string, maxLength: number) => string;
+  formatJenisToFormState: (jenis: Jenis) => FormState;
+  createEmptyFormState: () => FormState;
 }
 
-//
+export const useJenisListPeneliti = (): UseJenisListPenelitiReturn => {
+  const [jenisList, setJenisList] = useState<Jenis[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchJenis = useCallback(async (): Promise<void> => {
+    try {
+      setLoading(true);
+      setError(null);
+      const jenisData = await JenisServicePeneliti.fetchJenis();
+      setJenisList(jenisData);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan saat memuat data';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+ 
+  const truncateText = useCallback((text: string, maxLength: number): string => {
+    if (!text) return "";
+    if (text.length > maxLength) {
+      return text.substring(0, maxLength) + '...';
+    }
+    return text;
+  }, []);
+
+  const formatJenisToFormState = useCallback((jenis: Jenis): FormState => {
+    return JenisServicePeneliti.formatJenisToFormState(jenis);
+  }, []);
+
+  const createEmptyFormState = useCallback((): FormState => {
+    return JenisServicePeneliti.createEmptyFormState();
+  }, []);
+
+  return {
+    jenisList,
+    loading,
+    error,
+    fetchJenis,
+    truncateText,
+    formatJenisToFormState,
+    createEmptyFormState,
+  };
+};
+
+// Hook untuk form CRUD operations
 type Mode = "create" | "edit";
 
-export interface UseJenisFormReturn {
+export interface UseJenisFormPenelitiReturn {
   form: FormState;
   isLoading: boolean;
   imageError: string;
@@ -91,7 +79,7 @@ export interface UseJenisFormReturn {
   validateForm: () => boolean;
 }
 
-export const useJenisForm = (initialForm: FormState): UseJenisFormReturn => {
+export const useJenisFormPeneliti = (initialForm: FormState): UseJenisFormPenelitiReturn => {
   const [form, setForm] = useState<FormState>(initialForm);
   const [isLoading, setIsLoading] = useState(false);
   const [imageError, setImageError] = useState("");
@@ -111,7 +99,6 @@ export const useJenisForm = (initialForm: FormState): UseJenisFormReturn => {
         setImageError("");
       }
     } catch (error) {
-      console.error('Error picking image:', error);
       Alert.alert("Error", error instanceof Error ? error.message : "Gagal memilih gambar");
     }
   }, []);
@@ -124,7 +111,6 @@ export const useJenisForm = (initialForm: FormState): UseJenisFormReturn => {
         setImageError("");
       }
     } catch (error) {
-      console.error('Error taking photo:', error);
       Alert.alert("Error", error instanceof Error ? error.message : "Gagal mengambil foto");
     }
   }, []);
@@ -144,12 +130,6 @@ export const useJenisForm = (initialForm: FormState): UseJenisFormReturn => {
       return false;
     }
 
-    // Optional: Validate image if required
-    // if (!form.gambar && mode === 'create') {
-    //   setImageError("Gambar wajib diunggah");
-    //   return false;
-    // }
-
     return true;
   }, [form]);
 
@@ -161,19 +141,18 @@ export const useJenisForm = (initialForm: FormState): UseJenisFormReturn => {
     setIsLoading(true);
     
     try {
-      const formData = JenisServiceP21.convertToFormData(form);
+      const formData = JenisServiceCRUD.convertToFormData(form);
 
       if (mode === "edit" && form.jenis_id) {
-        await JenisServiceP21.updateJenis(form.jenis_id, formData);
+        await JenisServiceCRUD.updateJenis(form.jenis_id, formData);
         Alert.alert("Sukses", "Jenis mangrove berhasil diperbarui");
       } else {
-        await JenisServiceP21.createJenis(formData);
+        await JenisServiceCRUD.createJenis(formData);
         Alert.alert("Sukses", "Jenis mangrove berhasil ditambahkan");
       }
       
       onSuccess();
     } catch (error) {
-      console.error('Error submitting form:', error);
       Alert.alert("Error", error instanceof Error ? error.message : "Gagal menyimpan data");
     } finally {
       setIsLoading(false);
@@ -194,11 +173,10 @@ export const useJenisForm = (initialForm: FormState): UseJenisFormReturn => {
           onPress: async () => {
             setIsLoading(true);
             try {
-              await JenisServiceP21.deleteJenis(form.jenis_id!);
+              await JenisServiceCRUD.deleteJenis(form.jenis_id!);
               Alert.alert("Sukses", "Jenis mangrove berhasil dihapus");
               onSuccess();
             } catch (error) {
-              console.error('Error deleting jenis:', error);
               Alert.alert("Error", error instanceof Error ? error.message : "Gagal menghapus data");
             } finally {
               setIsLoading(false);

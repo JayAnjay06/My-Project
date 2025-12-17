@@ -1,15 +1,15 @@
-import React, { useEffect } from "react";
 import {
-  View,
-  Text,
-  FlatList,
   ActivityIndicator,
-  StyleSheet,
+  Alert,
+  FlatList,
   RefreshControl,
-  Alert
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
+import React, { useEffect } from "react";
+import { useLokasiPemerintah } from '@/components/hooks/pemerintah/useLokasi';
 import { Ionicons } from "@expo/vector-icons";
-import { useLokasiMonitoring } from '@/components/hooks//useLokasi';
 import { StatsCard } from '@/components/role/pemerintah/lokasi/StatsCard';
 import { LokasiCard } from '@/components/role/pemerintah/lokasi/LokasiCard';
 
@@ -24,7 +24,7 @@ export default function LokasiPemerintah() {
     getStatusInfo,
     formatNumber,
     formatDate,
-  } = useLokasiMonitoring();
+  } = useLokasiPemerintah();
 
   useEffect(() => {
     if (error) {

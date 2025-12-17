@@ -118,8 +118,6 @@ class AiAnalisisController extends Controller
         }
     }
 
-    // ========== PRIVATE METHODS ==========
-
     private function imageToBase64($fotoPath)
     {
         if (Storage::disk('public')->exists($fotoPath)) {
